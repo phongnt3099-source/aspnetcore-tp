@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\common.props"></Import>
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>ThienPhucDental</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Abp.Web.Common" Version="9.1.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ThienPhucDental.Core.Shared\ThienPhucDental.Core.Shared.csproj" />
+  </ItemGroup>
+</Project>
