@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Abp.AspNetCore.Configuration;
 using Abp.AspNetZeroCore;
 using Abp.AspNetZeroCore.Web.Authentication.External;
 using Abp.AspNetZeroCore.Web.Authentication.External.Facebook;
@@ -46,6 +47,12 @@ namespace ThienPhucDental.Web.Startup
             Configuration.Modules.AbpWebCommon().MultiTenancy.DomainFormat =
                 _appConfiguration["App:ServerRootAddress"] ?? "https://localhost:44301/";
             Configuration.Modules.AspNetZero().LicenseCode = _appConfiguration["AbpZeroLicenseCode"];
+
+            Configuration.Modules.AbpAspNetCore()
+        .CreateControllersForAppServices(
+            typeof(ThienPhucDentalApplicationModule).Assembly,
+            moduleName: "app"
+        );
         }
 
         public override void Initialize()

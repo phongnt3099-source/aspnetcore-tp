@@ -8,6 +8,7 @@ namespace ThienPhucDental.Common.Dto
     {
         public string CDNAME { get; set; }
         public string CNAME { get; set; }
+        public string CDVAL { get; set; }
         public string CONTENT {  get; set; }
         public string CDTYPE { get; set; }
     }

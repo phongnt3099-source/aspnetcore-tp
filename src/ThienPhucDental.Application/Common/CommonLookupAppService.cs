@@ -100,6 +100,17 @@ namespace ThienPhucDental.Common
             })).FirstOrDefault();
             return result;  
         }
+        public async Task<List<CM_ALLCODE_ENTITY>> CM_ALLCODE_DROPDOWNLIST(string cdType, string cdName)
+        {
+            var result = await _storeProcedureProvider
+                .GetDataFromStoredProcedure<CM_ALLCODE_ENTITY>(CommonStoreProcedureConsts.CM_ALLCODE_DROPDOWNLIST, new
+                {
+                    P_CDNAME = cdName,
+                    P_CDTYPE = cdType,
+                });
+
+            return result;
+        }
 
         //[AbpAuthorize(AppPermissions.Pages_Common_AllCode)]
         public async Task<PagedResultDto<CM_ALLCODE_ENTITY>> CM_ALLCODE_Search(CM_ALLCODE_ENTITY input)

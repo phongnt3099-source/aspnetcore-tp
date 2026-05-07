@@ -12,6 +12,7 @@ namespace ThienPhucDental.Common
     public interface IAllCodeAppService: IApplicationService
     {
         Task<CM_ALLCODE_ENTITY> CM_ALLCODE_GetByCDNAME(string cdName, string cdType, string cdVal);
+        Task<List<CM_ALLCODE_ENTITY>> CM_ALLCODE_DROPDOWNLIST(string cdType, string cdName);
         Task<PagedResultDto<CM_ALLCODE_ENTITY>> CM_ALLCODE_Search(CM_ALLCODE_ENTITY input);
 
         Task<InsertResult> CM_ALLCODE_Ins(CM_ALLCODE_ENTITY input);

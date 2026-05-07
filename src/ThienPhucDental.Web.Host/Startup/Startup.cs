@@ -47,6 +47,7 @@ using ThienPhucDental.ProcedureHelpers;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using ThienPhucDental.Helper;
 using ThienPhucDental.Heplers;
+using Microsoft.AspNetCore.Http;
 
 namespace ThienPhucDental.Web.Startup
 {
@@ -156,6 +157,16 @@ namespace ThienPhucDental.Web.Startup
             {
                 ConfigureHealthChecks(services);
             }
+
+            services.AddAntiforgery(options =>
+            {
+                // Đổi tên Header để Swagger và ABP nhận diện đồng bộ
+                options.HeaderName = "X-XSRF-TOKEN";
+
+                // Cấu hình cookie xử lý nghiêm ngặt theo đúng Base Path trên IIS
+                options.Cookie.Path = "/api"; // Thay "/api" bằng tên chính xác của Sub-Application trên IIS của bạn
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+            });
 
             services.TryAddSingleton<IClientConnection, ClientConnection>();
             services.AddScoped<IDetailLoggerHelper, DetailLoggerHelper>();
