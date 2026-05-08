@@ -4,12 +4,12 @@ using System.Text;
 
 namespace ThienPhucDental.Common.Dto
 {
-    public class CM_CUSTOMER_ENTITY
+    public class CM_CUSTOMER_ENTITY: PagedAndSortedInputDto
     {
         public string CUS_ID { get; set; }
         public string CUS_CODE { get; set; }
         public string CUS_DOB { get; set; }
-        public string CUS_GENDER { get; set; }
+        public int? CUS_GENDER { get; set; }
         public string CUS_PHONE { get; set; }
         public string CUS_NAME { get; set; }
         public string CUS_PHONE2 { get; set; }
@@ -40,5 +40,7 @@ namespace ThienPhucDental.Common.Dto
         public bool IsStentVanh { get; set; }
         public bool IsDotQuy { get; set; }
         public bool IsLoangXuong { get; set; }
+        public int AGE { get; set; }
+        public int SN { get; set; }
     }
 }
