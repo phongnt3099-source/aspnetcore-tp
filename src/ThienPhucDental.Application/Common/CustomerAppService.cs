@@ -25,13 +25,11 @@ namespace ThienPhucDental.Common
             _storeProcedureProvider = storeProcedureProvider;
 
         }
-        public async Task<CM_CUSTOMER_ENTITY> CM_CUSTOMER_GetByCDNAME(string cdType, string cdName, string cdVal)
+        public async Task<CM_CUSTOMER_ENTITY> CM_CUSTOMER_GetById(string Id)
         {
             var result = (await _storeProcedureProvider.GetDataFromStoredProcedure<CM_CUSTOMER_ENTITY>(CommonStoreProcedureConsts.CM_CUSTOMER_BYID, new
             {
-                P_CDNAME = cdName,
-                P_CDTYPE = cdType,
-                P_CDVAL = cdVal
+                P_CUS_ID = Id
             })).FirstOrDefault();
             return result;
         }
@@ -59,12 +57,12 @@ namespace ThienPhucDental.Common
         }
 
         // [AbpAuthorize(AppPermissions.Pages_Common_AllCode_Delete)]
-        public async Task<CommonResult> CM_CUSTOMER_Del(int id)
+        public async Task<CommonResult> CM_CUSTOMER_Del(string id)
         {
             var result = (await _storeProcedureProvider
                 .GetDataFromStoredProcedure<CommonResult>(CommonStoreProcedureConsts.CM_CUSTOMER_DEL, new
                 {
-                    ALL_CODE_ID = id
+                    CUS_ID = id
                 })).FirstOrDefault();
             return result;
         }

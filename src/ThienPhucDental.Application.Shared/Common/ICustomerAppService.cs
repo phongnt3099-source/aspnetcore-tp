@@ -12,7 +12,8 @@ namespace ThienPhucDental.Common
     public interface ICustomerAppService: IApplicationService
     {
         Task<PagedResultDto<CM_CUSTOMER_ENTITY>> CM_CUSTOMER_Search(CM_CUSTOMER_ENTITY input);
+        Task<CM_CUSTOMER_ENTITY> CM_CUSTOMER_GetById(string Id);
         Task<InsertResult> CM_CUSTOMER_Ins(CM_CUSTOMER_ENTITY input);
-        Task<CommonResult> CM_CUSTOMER_Del(int id);
+        Task<CommonResult> CM_CUSTOMER_Del(string id);
     }
 }

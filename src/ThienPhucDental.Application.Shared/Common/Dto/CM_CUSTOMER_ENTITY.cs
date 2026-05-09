@@ -17,6 +17,7 @@ namespace ThienPhucDental.Common.Dto
         public string CUS_ADDRESS { get; set; }
         public string CUS_WARD { get; set; }
         public string CUS_CITY { get; set; }
+        public string CUS_ADDRESS_FULL { get; set; }
         public string CUS_MEDICAL_HISTORY { get; set; }
         public string CUS_MEDICAL_HISTORY_NOTES { get; set; }
         public string CUS_JOB { get; set; }
@@ -42,5 +43,7 @@ namespace ThienPhucDental.Common.Dto
         public bool IsLoangXuong { get; set; }
         public int AGE { get; set; }
         public int SN { get; set; }
+        public int debtAmount { get; set; }
+        public int totalPayment { get; set; }
     }
 }
