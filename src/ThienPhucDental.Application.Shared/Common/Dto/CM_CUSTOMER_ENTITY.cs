@@ -45,5 +45,14 @@ namespace ThienPhucDental.Common.Dto
         public int SN { get; set; }
         public int debtAmount { get; set; }
         public int totalPayment { get; set; }
+
+
+        public string APP_ID { get; set; }
+
+        public string SLOT_NAME { get; set; }
+        public string TIME_DISTANCE { get; set; }
+        public string FORMATTED_DATE{ get; set; }
+        public string STATUS_COLOR { get; set; }
+        public string ONLY_TIME { get; set; }
     }
 }

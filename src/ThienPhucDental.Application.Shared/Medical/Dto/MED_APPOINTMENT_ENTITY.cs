@@ -7,13 +7,14 @@ namespace ThienPhucDental.Medical.Dto
 {
     public class MED_APPOINTMENT_ENTITY: PagedAndSortedInputDto
     {
-        public int APP_ID { get; set; }
+        public string APP_ID { get; set; }
 
-        public DateTime APP_DATE { get; set; }
+        public string APP_DATE { get; set; }
 
         public int RANGE_TIME { get; set; }
         public string HOUR { get; set; }
         public string MINUTE { get; set; }
+        public string START_TIME { get; set; }
         public string SLOT_NAME { get; set; }
 
         public string APP_CUST_ID { get; set; }
@@ -32,6 +33,6 @@ namespace ThienPhucDental.Medical.Dto
 
         public string MAKER_ID { get; set; }
 
-        public DateTime? CREATE_DT { get; set; }
+        public string CREATE_DT { get; set; }
     }
 }

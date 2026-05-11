@@ -6,9 +6,9 @@ namespace ThienPhucDental.Medical.Dto
 {
     public class AppointmentDto
     {
-        public int APP_ID { get; set; }
+        public string APP_ID { get; set; }
 
-        public DateTime APP_DATE { get; set; }
+        public string APP_DATE { get; set; }
 
         public string APP_TIME { get; set; }
 
