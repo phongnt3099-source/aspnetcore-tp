@@ -21,6 +21,7 @@ namespace ThienPhucDental.CoreModule.Consts
         public const string CM_CUSTOMER_DEL = "CM_CUSTOMER_Del";
         public const string CM_CUSTOMER_BYID = "CM_CUSTOMER_ById";
         public const string CM_CUSTOMER_SEARCH = "CM_CUSTOMER_Search";
+        public const string CM_CUSTOMER_DROPDOWNLIST = "CM_CUSTOMER_Dropdown";
 
 
         public const string MED_APPOINTMENT_INS = "MED_APPOINTMENT_Ins";

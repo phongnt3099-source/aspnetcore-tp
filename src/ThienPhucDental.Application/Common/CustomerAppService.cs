@@ -34,6 +34,16 @@ namespace ThienPhucDental.Common
             return result;
         }
 
+        public async Task<List<CM_CUSTOMER_ENTITY>> CM_CUSTOMER_DROPDOWNLIST()
+        {
+            var result = await _storeProcedureProvider
+                .GetDataFromStoredProcedure<CM_CUSTOMER_ENTITY>(CommonStoreProcedureConsts.CM_CUSTOMER_DROPDOWNLIST, new
+                {
+                });
+
+            return result;
+        }
+
         //[AbpAuthorize(AppPermissions.Pages_Common_AllCode)]
         public async Task<PagedResultDto<CM_CUSTOMER_ENTITY>> CM_CUSTOMER_Search(CM_CUSTOMER_ENTITY input)
         {
