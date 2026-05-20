@@ -32,5 +32,17 @@ namespace ThienPhucDental.CoreModule.Consts
 
         public const string CM_EMPLOYEE_DROPDOWNLIST = "CM_EMPLOYEE_Dropdown";
 
+        public const string MED_EXAMINATION_INS = "MED_EXAMINATION_Ins";
+        public const string MED_EXAMINATION_UPD = "MED_EXAMINATION_Upd";
+        public const string MED_EXAMINATION_DEL = "MED_EXAMINATION_Del";
+        public const string MED_EXAMINATION_BYID = "MED_EXAMINATION_ById";
+        public const string MED_EXAMINATION_SEARCH = "MED_EXAMINATION_Search";
+
+
+        public const string MED_TREATMENT_DETAIL_BYID = "MED_TREATMENT_DETAIL_ById";
+
+        public const string CM_SERVICES_GETBYTYPE = "CM_SERVICES_GetByType";
+
+        public const string CM_SERVICE_TYPE_GETALL = "CM_SERVICE_TYPE_GetAll";
     }
 }

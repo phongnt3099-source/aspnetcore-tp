@@ -15,6 +15,7 @@ namespace ThienPhucDental.Medical
         Task<PagedResultDto<MED_APPOINTMENT_ENTITY>> MED_APPOINTMENT_Search(MED_APPOINTMENT_ENTITY input);
         Task<MED_APPOINTMENT_ENTITY> MED_APPOINTMENT_GetById(string Id);
         Task<InsertResult> MED_APPOINTMENT_Ins(MED_APPOINTMENT_ENTITY input);
+        Task<InsertResult> MED_APPOINTMENT_Upd(MED_APPOINTMENT_ENTITY input);
         Task<CommonResult> MED_APPOINTMENT_Del(string id);
     }
 }
