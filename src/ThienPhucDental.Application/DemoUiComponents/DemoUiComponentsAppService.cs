@@ -8,7 +8,7 @@ using ThienPhucDental.DemoUiComponents.Dto;
 
 namespace ThienPhucDental.DemoUiComponents
 {
-    [AbpAuthorize(AppPermissions.Pages_DemoUiComponents)]
+    //[AbpAuthorize(AppPermissions.Pages_DemoUiComponents)]
     public class DemoUiComponentsAppService : ThienPhucDentalAppServiceBase, IDemoUiComponentsAppService
     {
         #region date & time pickers

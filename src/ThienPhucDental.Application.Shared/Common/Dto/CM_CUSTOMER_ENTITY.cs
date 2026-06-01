@@ -54,5 +54,10 @@ namespace ThienPhucDental.Common.Dto
         public string FORMATTED_DATE{ get; set; }
         public string STATUS_COLOR { get; set; }
         public string ONLY_TIME { get; set; }
+
+
+        public int EXM_COUNT { get; set; }
+        public decimal? TOTAL_PAID { get; set; }
+        public decimal? REMAINING_DEBT { get; set; }
     }
 }

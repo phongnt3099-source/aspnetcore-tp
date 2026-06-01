@@ -29,7 +29,7 @@ namespace ThienPhucDental.Authorization
             //COMMON PERMISSIONS (FOR BOTH OF TENANTS AND HOST)
 
             var pages = context.GetPermissionOrNull(AppPermissions.Pages) ?? context.CreatePermission(AppPermissions.Pages, L("Pages"));
-            pages.CreateChildPermission(AppPermissions.Pages_DemoUiComponents, L("DemoUiComponents"));
+            //pages.CreateChildPermission(AppPermissions.Pages_DemoUiComponents, L("DemoUiComponents"));
 
             var administration = pages.CreateChildPermission(AppPermissions.Pages_Administration, L("Administration"));
 
@@ -130,6 +130,16 @@ namespace ThienPhucDental.Authorization
             allcode.CreateChildPermission(AppPermissions.Pages_Common_AllCode_Update, L("EditingAllCodes"), multiTenancySides: MultiTenancySides.Host);
             allcode.CreateChildPermission(AppPermissions.Pages_Common_AllCode_Delete, L("DeletingAllCodes"), multiTenancySides: MultiTenancySides.Host);
 
+            var medicalExamination = pages.CreateChildPermission(AppPermissions.Pages_Medical_Examination, L("MedicalExaminations"), multiTenancySides: MultiTenancySides.Tenant);
+            medicalExamination.CreateChildPermission(AppPermissions.Pages_Medical_Examination_Create, L("CreatingNewMedicalExamination"), multiTenancySides: MultiTenancySides.Tenant);
+            medicalExamination.CreateChildPermission(AppPermissions.Pages_Medical_Examination_Update, L("EditingMedicalExamination"), multiTenancySides: MultiTenancySides.Tenant);
+            medicalExamination.CreateChildPermission(AppPermissions.Pages_Medical_Examination_Delete, L("DeletingMedicalExamination"), multiTenancySides: MultiTenancySides.Tenant);
+
+            var financeTransaction = context.CreatePermission(AppPermissions.Pages_Finance_Transaction, L("FinanceManagement"));
+            financeTransaction.CreateChildPermission(AppPermissions.Pages_Finance_Transaction_Create, L("CreateFinanceTransaction"));
+            financeTransaction.CreateChildPermission(AppPermissions.Pages_Finance_Transaction_Print, L("PrintInvoiceReceipt"));
+            financeTransaction.CreateChildPermission(AppPermissions.Pages_Finance_Transaction_EditLast, L("EditOrDeleteLastTransaction"));
+            financeTransaction.CreateChildPermission(AppPermissions.Pages_Finance_Transaction_AdminBypass, L("AdminBypassHistoryLock"));
         }
 
         private static ILocalizableString L(string name)

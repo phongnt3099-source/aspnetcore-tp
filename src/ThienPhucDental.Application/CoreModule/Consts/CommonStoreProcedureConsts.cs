@@ -37,6 +37,7 @@ namespace ThienPhucDental.CoreModule.Consts
         public const string MED_EXAMINATION_DEL = "MED_EXAMINATION_Del";
         public const string MED_EXAMINATION_BYID = "MED_EXAMINATION_ById";
         public const string MED_EXAMINATION_SEARCH = "MED_EXAMINATION_Search";
+        public const string MED_EXAMINATION_DROPDOWNLIST = "MED_EXAMINATION_Dropdown";
 
 
         public const string MED_TREATMENT_DETAIL_BYID = "MED_TREATMENT_DETAIL_ById";
@@ -44,5 +45,12 @@ namespace ThienPhucDental.CoreModule.Consts
         public const string CM_SERVICES_GETBYTYPE = "CM_SERVICES_GetByType";
 
         public const string CM_SERVICE_TYPE_GETALL = "CM_SERVICE_TYPE_GetAll";
+
+        public const string FIN_TRANSACTION_INS = "FIN_TRANSACTION_Ins";
+        public const string FIN_TRANSACTION_UPD = "FIN_TRANSACTION_Upd";
+        public const string FIN_TRANSACTION_DEL = "FIN_TRANSACTION_Del";
+        public const string FIN_TRANSACTION_BYID = "FIN_TRANSACTION_ById";
+        public const string FIN_TRANSACTION_SEARCH = "FIN_TRANSACTION_Search";
+        public const string FIN_TRANSACTION_GETLOGBYEXM = "FIN_TRANSACTION_GetLogByExm";
     }
 }

@@ -16,5 +16,6 @@ namespace ThienPhucDental.Medical
         Task<InsertResult> MED_EXAMINATION_Ins(MED_EXAMINATION_ENTITY input);
         Task<InsertResult> MED_EXAMINATION_Upd(MED_EXAMINATION_ENTITY input);
         Task<CommonResult> MED_EXAMINATION_Del(string Id);
+        Task<List<MED_EXAMINATION_ENTITY>> MED_EXAMINATION_DROPDOWNLIST(); 
     }
 }

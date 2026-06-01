@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using ThienPhucDental.Common.Dto;
 using ThienPhucDental.CoreModule.Consts;
 using ThienPhucDental.CoreModule.Utils;
 using ThienPhucDental.Medical.Dto;
@@ -155,8 +156,17 @@ namespace ThienPhucDental.Medical
             var result = (await _storeProcedureProvider
                 .GetDataFromStoredProcedure<CommonResult>(CommonStoreProcedureConsts.MED_EXAMINATION_DEL, new
                 {
-                    P_MED_ID = id
+                    P_EXM_ID = id
                 })).FirstOrDefault();
+            return result;
+        }
+        public async Task<List<MED_EXAMINATION_ENTITY>> MED_EXAMINATION_DROPDOWNLIST()
+        {
+            var result = await _storeProcedureProvider
+                .GetDataFromStoredProcedure<MED_EXAMINATION_ENTITY>(CommonStoreProcedureConsts.MED_EXAMINATION_DROPDOWNLIST, new
+                {
+                });
+
             return result;
         }
     }

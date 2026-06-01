@@ -77,6 +77,9 @@ namespace ThienPhucDental.Web
             //Use database for language management
             Configuration.Modules.Zero().LanguageManagement.EnableDbLocalization();
 
+            // Tắt tính năng tự động Validate Antiforgery trên toàn hệ thống ABP
+            Configuration.Validation.IgnoredTypes.Add(typeof(Microsoft.AspNetCore.Antiforgery.IAntiforgery));
+
             Configuration.Modules.AbpAspNetCore()
                 .CreateControllersForAppServices(
                     typeof(ThienPhucDentalApplicationModule).GetAssembly()

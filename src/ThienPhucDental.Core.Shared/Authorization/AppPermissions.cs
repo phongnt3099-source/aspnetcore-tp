@@ -10,7 +10,7 @@
 
         public const string Pages = "Pages";
 
-        public const string Pages_DemoUiComponents = "Pages.DemoUiComponents";
+        //public const string Pages_DemoUiComponents = "Pages.DemoUiComponents";
         public const string Pages_Administration = "Pages.Administration";
 
         public const string Pages_Administration_Roles = "Pages.Administration.Roles";
@@ -110,5 +110,16 @@
         public const string Pages_Common_AllCode_Create = "Pages.Common.AllCode.Create";
         public const string Pages_Common_AllCode_Update = "Pages.Common.AllCode.Update";
         public const string Pages_Common_AllCode_Delete = "Pages.Common.AllCode.Delete";
+
+        public const string Pages_Medical_Examination = "Pages.Medical.Examination";
+        public const string Pages_Medical_Examination_Create = "Pages.Medical.Examination.Create";
+        public const string Pages_Medical_Examination_Update = "Pages.Medical.Examination.Update";
+        public const string Pages_Medical_Examination_Delete = "Pages.Medical.Examination.Delete";
+
+        public const string Pages_Finance_Transaction = "Pages.Finance_Transaction";
+        public const string Pages_Finance_Transaction_Create = "Pages.Finance_Transaction.Create";
+        public const string Pages_Finance_Transaction_Print = "Pages.Finance_Transaction.Print";
+        public const string Pages_Finance_Transaction_EditLast = "Pages.Finance_Transaction.EditLast";
+        public const string Pages_Finance_Transaction_AdminBypass = "Pages.Finance_Transaction.AdminBypass";
     }
 }

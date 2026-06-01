@@ -782,5 +782,16 @@
     <text name="Green">Màu lục</text>
     <text name="Pink">Màu hồng</text>
     <text name="Yellow">Màu vàng</text>
+
+    <text name="MedicalExaminations" value="Quản lý Khám và Điều trị" />
+    <text name="CreatingNewMedicalExamination" value="Tạo mới phiếu khám" />
+    <text name="EditingMedicalExamination" value="Chỉnh sửa phiếu khám" />
+    <text name="DeletingMedicalExamination" value="Xóa phiếu khám" />
+
+    <text name="FinanceManagement">Quản lý Thu Chi</text>
+    <text name="CreateFinanceTransaction">Lập phiếu Thu - Chi mới</text>
+    <text name="PrintInvoiceReceipt">In hóa đơn / Biên lai</text>
+    <text name="EditOrDeleteLastTransaction">Sửa hoặc Xóa lượt giao dịch gần nhất</text>
+    <text name="AdminBypassHistoryLock">Quyền Quản trị viên: Can thiệp sửa toàn bộ lịch sử tiền</text>
   </texts>
 </localizationDictionary>
