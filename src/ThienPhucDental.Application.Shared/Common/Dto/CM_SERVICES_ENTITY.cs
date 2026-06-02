@@ -17,8 +17,8 @@ namespace ThienPhucDental.Common.Dto
         public bool? SRV_PRICE_INCLUDES_VAT { get; set; }
         public string SRV_VAT_NAME { get; set; }
         public string SRV_VAT_UNIT { get; set; }
-        public bool? SRV_HAS_WARRANTY { get; set; }
-        public string SRV_WARRANTY_PERIOD { get; set; }
+        public bool? HAS_WARRANTY { get; set; }
+        public string WARRANTY_PERIOD { get; set; }
         public string SRV_NOTE { get; set; }
         public bool? SRV_ISACTIVE { get; set; }
     }

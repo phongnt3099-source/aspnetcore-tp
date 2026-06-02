@@ -21,5 +21,9 @@ namespace ThienPhucDental.Medical.Dto
         public decimal? TD_FINAL_PRICE_PER_UNIT { get; set; }
         public string discountType { get; set; }
         public decimal? discountValue { get; set; }
+        public string TD_WARRANTY_EXPIRED_DATE { get; set; }
+        public bool? TD_HAS_WARRANTY { get; set; }
+        public string TD_WARRANTY_START_DATE { get; set; }
+        
     }
 }

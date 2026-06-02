@@ -44,7 +44,11 @@ namespace ThienPhucDental.CoreModule.Consts
 
         public const string CM_SERVICES_GETBYTYPE = "CM_SERVICES_GetByType";
 
-        public const string CM_SERVICE_TYPE_GETALL = "CM_SERVICE_TYPE_GetAll";
+        public const string CM_SERVICE_TYPE_GETALL = "CM_SERVICE_TYPE_GetAll"; 
+        public const string CM_SERVICE_TYPE_INS = "CM_SERVICE_TYPE_Ins";
+        public const string CM_SERVICE_TYPE_UPD = "CM_SERVICE_TYPE_Upd";
+        public const string CM_SERVICE_TYPE_DEL = "CM_SERVICE_TYPE_Del";
+        public const string CM_SERVICE_TYPE_SEARCH = "CM_SERVICE_TYPE_Search";
 
         public const string FIN_TRANSACTION_INS = "FIN_TRANSACTION_Ins";
         public const string FIN_TRANSACTION_UPD = "FIN_TRANSACTION_Upd";
