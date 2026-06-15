@@ -14,6 +14,7 @@ namespace ThienPhucDental.Finance
         Task<InsertResult> FIN_TRANSACTION_Ins(FIN_TRANSACTION_ENTITY input);
         Task<InsertResult> FIN_TRANSACTION_Upd(FIN_TRANSACTION_ENTITY input);
         Task<CommonResult> FIN_TRANSACTION_Del(string id, string maker_id);
+        Task<FinancialDashboardDto> FIN_TRANSACTION_GetDashboard(FIN_TRANSACTION_ENTITY input);
         Task<List<FIN_TRANSACTION_ENTITY>> FIN_TRANSACTION_GetLogByExm(string Id);
     }
 }

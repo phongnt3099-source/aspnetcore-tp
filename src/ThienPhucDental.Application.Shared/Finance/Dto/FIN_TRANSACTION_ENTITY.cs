@@ -15,6 +15,8 @@ namespace ThienPhucDental.Finance.Dto
 
         public string PATIENT_ID { get; set; }
 
+        public string CUS_NAME { get; set; }
+
         public string DOCUMENT_DATE { get; set; }
 
         public decimal TOTAL_AMOUNT { get; set; }
@@ -25,10 +27,20 @@ namespace ThienPhucDental.Finance.Dto
 
         public string CATEGORY_ID { get; set; }
 
+        public string CATEGORY_NAME { get; set; }
+
         public string MAKER_ID { get; set; }
 
         public string CREATE_DT { get; set; }
 
         public string FT_EXM_ID { get; set; }
+
+        public string FT_EXM_CODE { get; set; }
+
+        public string SEARCH_KEYWORD { get; set; }
+
+        public string FROM_DATE { get; set; }
+
+        public string TO_DATE { get; set; }
     }
 }

@@ -14,7 +14,9 @@ namespace ThienPhucDental.Common
         Task<PagedResultDto<CM_CUSTOMER_ENTITY>> CM_CUSTOMER_Search(CM_CUSTOMER_ENTITY input);
         Task<CM_CUSTOMER_ENTITY> CM_CUSTOMER_GetById(string Id);
         Task<InsertResult> CM_CUSTOMER_Ins(CM_CUSTOMER_ENTITY input);
+        Task<InsertResult> CM_CUSTOMER_Upd(CM_CUSTOMER_ENTITY input);
         Task<CommonResult> CM_CUSTOMER_Del(string id);
         Task<List<CM_CUSTOMER_ENTITY>> CM_CUSTOMER_DROPDOWNLIST();
+        Task<List<CM_CUSTOMER_ENTITY>> CM_CUSTOMER_CheckPhone(string phone,string current_cus_id);
     }
 }

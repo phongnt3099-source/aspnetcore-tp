@@ -12,5 +12,9 @@ namespace ThienPhucDental.Common.Dto
         public int? TOTAL_PROCEDURES { get; set; }
         public bool? ISACTIVE { get; set; }
         public string STATUS { get; set; }
+        public string MAKER_ID { get; set; }
+        public string CREATE_DT { get; set; }
+        public string UPDATE_DT { get; set; }
+        public string UPDATE_USER { get; set; }
     }
 }
