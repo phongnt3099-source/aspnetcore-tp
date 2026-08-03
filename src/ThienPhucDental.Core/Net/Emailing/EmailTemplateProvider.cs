@@ -34,8 +34,11 @@ namespace ThienPhucDental.Net.Emailing
                     var bytes = stream.GetAllBytes();
                     var template = Encoding.UTF8.GetString(bytes, 3, bytes.Length - 3);
                     template = template.Replace("{THIS_YEAR}", DateTime.Now.Year.ToString());
-                    template = template.Replace("{TWITTER_URL}", GetTwitterIconUrl());
-                    return template.Replace("{EMAIL_LOGO_URL}", GetTenantLogoUrl(tenantId));
+                    //template = template.Replace("{TWITTER_URL}", GetTwitterIconUrl() ?? "#");
+
+                    var logoUrl = "https://lh3.googleusercontent.com/d/1_IW6yTChgurGdSVgqULStxswkZrKAPZ1";
+
+                    return template.Replace("{EMAIL_LOGO_URL}", logoUrl);
                 }
             });
         }

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Abp.Application.Services;
 using Abp.Application.Services.Dto;
 using ThienPhucDental.Common.Dto;
@@ -13,5 +14,6 @@ namespace ThienPhucDental.Common
         Task<PagedResultDto<FindUsersOutputDto>> FindUsers(FindUsersInput input);
 
         GetDefaultEditionNameOutput GetDefaultEditionName();
+        Task<List<CM_ROLES_ENTITY>> CM_ROLES_DROPDOWNLIST();
     }
 }

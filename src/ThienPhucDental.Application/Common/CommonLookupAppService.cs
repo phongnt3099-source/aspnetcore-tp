@@ -170,5 +170,12 @@ namespace ThienPhucDental.Common
                 })).FirstOrDefault();
             return result;
         }
+        public async Task<List<CM_ROLES_ENTITY>> CM_ROLES_DROPDOWNLIST()
+        {
+            var result = await _storeProcedureProvider
+                .GetDataFromStoredProcedure<CM_ROLES_ENTITY>(CommonStoreProcedureConsts.CM_ROLES_DROPDOWNLIST,new { });
+
+            return result;
+        }
     }
 }

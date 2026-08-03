@@ -56,6 +56,23 @@ namespace ThienPhucDental.Medical
             return result;
         }
 
+        public async Task<ExaminationStatusCountDto> MED_EXAMINATION_CountStatus(MED_EXAMINATION_ENTITY input)
+        {
+            var result = (await _storeProcedureProvider.GetDataFromStoredProcedure<ExaminationStatusCountDto>(CommonStoreProcedureConsts.MED_EXAMINATION_COUNTSTATUS, input)).FirstOrDefault();
+
+            return result;
+        }
+
+        public async Task<List<ExaminationTimelineDto>> MED_EXAMINATION_Timeline(string id)
+        {
+            var result = (await _storeProcedureProvider.GetDataFromStoredProcedure<ExaminationTimelineDto>(CommonStoreProcedureConsts.MED_EXAMINATION_TIMELINE, new
+            {
+                P_PATIENT_ID = id
+            })).ToList();
+
+            return result;
+        }
+
         //[AbpAuthorize(AppPermissions.Pages_Common_AllCode_Create)]
         public async Task<InsertResult> MED_EXAMINATION_Ins(MED_EXAMINATION_ENTITY input)
         {

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using ThienPhucDental.Common.Dto;
 using ThienPhucDental.CoreModule.Consts;
 using ThienPhucDental.CoreModule.Utils;
@@ -31,6 +32,11 @@ namespace ThienPhucDental.Common
             {
                 P_CUS_ID = Id
             })).FirstOrDefault();
+
+            result.RelationList = (await _storeProcedureProvider.GetDataFromStoredProcedure<CM_RELATIONSHIP_ENTITY>(
+                    CommonStoreProcedureConsts.CM_RELATIONSHIP_BYID,
+                    new { P_CUS_ID = Id }
+                ));
             return result;
         }
 
@@ -39,6 +45,17 @@ namespace ThienPhucDental.Common
             var result = await _storeProcedureProvider
                 .GetDataFromStoredProcedure<CM_CUSTOMER_ENTITY>(CommonStoreProcedureConsts.CM_CUSTOMER_DROPDOWNLIST, new
                 {
+                });
+
+            return result;
+        }
+        public async Task<List<CM_CUSTOMER_ENTITY>> CM_CUSTOMER_CheckPhone(string phone,string current_cus_id)
+        {
+            var result = await _storeProcedureProvider
+                .GetDataFromStoredProcedure<CM_CUSTOMER_ENTITY>(CommonStoreProcedureConsts.CM_CUSTOMER_CHECKDUPLICATEPHONE, new
+                {
+                    P_CUS_PHONE = phone,
+                    P_CURRENT_CUS_ID = current_cus_id
                 });
 
             return result;
@@ -54,6 +71,27 @@ namespace ThienPhucDental.Common
         //[AbpAuthorize(AppPermissions.Pages_Common_AllCode_Create)]
         public async Task<InsertResult> CM_CUSTOMER_Ins(CM_CUSTOMER_ENTITY input)
         {
+            string relationXml = null;
+            if (input.RelationList != null && input.RelationList.Any())
+            {
+                var settings = new XmlWriterSettings();
+                settings.OmitXmlDeclaration = true;
+                settings.Indent = false;
+
+                using (var stringWriter = new System.IO.StringWriter())
+                {
+                    using (var xmlWriter = XmlWriter.Create(stringWriter, settings))
+                    {
+                        var xmlSerializer = new System.Xml.Serialization.XmlSerializer(typeof(List<CM_RELATIONSHIP_ENTITY>));
+                        xmlSerializer.Serialize(xmlWriter, input.RelationList);
+
+                        xmlWriter.Flush();
+                    }
+
+                    relationXml = stringWriter.ToString();
+                }
+            }
+            input.RELATION_XML = relationXml;
             var result = (await _storeProcedureProvider
                 .GetDataFromStoredProcedure<InsertResult>(CommonStoreProcedureConsts.CM_CUSTOMER_INS, input)).FirstOrDefault();
             return result;

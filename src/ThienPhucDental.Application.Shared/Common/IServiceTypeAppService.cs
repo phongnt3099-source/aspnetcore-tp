@@ -15,6 +15,7 @@ namespace ThienPhucDental.Common
         Task<List<CM_SERVICE_TYPE_ENTITY>> CM_SERVICES_GetAll();
         Task<InsertResult> CM_SERVICE_TYPE_Ins(CM_SERVICE_TYPE_ENTITY input);
         Task<CommonResult> CM_SERVICE_TYPE_Del(string id);
+        Task<InsertResult> CM_SERVICE_TYPE_Upd(CM_SERVICE_TYPE_ENTITY input);
         Task<PagedResultDto<CM_SERVICE_TYPE_ENTITY>> CM_SERVICE_TYPE_Search(CM_SERVICE_TYPE_ENTITY input);
     }
 }

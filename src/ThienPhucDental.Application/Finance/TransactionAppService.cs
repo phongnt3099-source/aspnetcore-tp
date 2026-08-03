@@ -41,6 +41,13 @@ namespace ThienPhucDental.Finance
             return result;
         }
 
+        public async Task<FinancialDashboardDto> FIN_TRANSACTION_GetDashboard(FIN_TRANSACTION_ENTITY input)
+        {
+            var result = (await _storeProcedureProvider.GetDataFromStoredProcedure<FinancialDashboardDto>(CommonStoreProcedureConsts.FIN_TRANSACTION_GETDASHBOARD, input)).FirstOrDefault();
+
+            return result;
+        }
+
         //[AbpAuthorize(AppPermissions.Pages_Common_AllCode_Create)]
         public async Task<InsertResult> FIN_TRANSACTION_Ins(FIN_TRANSACTION_ENTITY input)
         {

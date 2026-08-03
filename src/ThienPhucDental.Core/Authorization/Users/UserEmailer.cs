@@ -81,7 +81,7 @@ namespace ThienPhucDental.Authorization.Users
             {
                 if (user.EmailConfirmationCode.IsNullOrEmpty())
                 {
-                    throw new Exception("EmailConfirmationCode should be set in order to send email activation link.");
+                    throw new Exception("Mã xác thực email chưa được khởi tạo.");
                 }
 
                 link = link.Replace("{userId}", user.Id.ToString());
@@ -95,37 +95,89 @@ namespace ThienPhucDental.Authorization.Users
                 link = EncryptQueryParameters(link);
 
                 var tenancyName = GetTenancyNameOrNull(user.TenantId);
-                var emailTemplate = GetTitleAndSubTitle(user.TenantId, L("EmailActivation_Title"),
-                    L("EmailActivation_SubTitle"));
+                var emailTemplate = GetTitleAndSubTitle(user.TenantId, "Xác Thực Tài Khoản", "Cảm ơn bạn đã lựa chọn dịch vụ của chúng tôi");
+
+                var fullName = $"{user.Name} {user.Surname}".Trim();
+                var displayTenancy = !tenancyName.IsNullOrEmpty() ? tenancyName : "Nha Khoa Thiên Phúc";
+
                 var mailMessage = new StringBuilder();
 
-                mailMessage.AppendLine("<b>" + L("NameSurname") + "</b>: " + user.Name + " " + user.Surname + "<br />");
+                // Template HTML Luxury & Chuyên nghiệp
+                mailMessage.AppendLine(@"
+    <div style=""max-width: 580px; margin: 0 auto; background-color: #ffffff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #2c3e50; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #eaeaea;"">
+        
+        <!-- Header / Banner -->
+        <div style=""background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 32px 24px; text-align: center;"">
+            <h1 style=""color: #d4af37; font-size: 22px; font-weight: 600; letter-spacing: 1px; margin: 0; text-transform: uppercase;"">
+                XÁC NHẬN TÀI KHOẢN
+            </h1>
+            <p style=""color: #94a3b8; font-size: 13px; margin-top: 6px; margin-bottom: 0;"">
+                Chỉ còn một bước nữa để hoàn tất đăng ký
+            </p>
+        </div>
 
-                if (!tenancyName.IsNullOrEmpty())
-                {
-                    mailMessage.AppendLine("<b>" + L("TenancyName") + "</b>: " + tenancyName + "<br />");
-                }
+        <!-- Body Content -->
+        <div style=""padding: 36px 32px;"">
+            <p style=""font-size: 15px; color: #334155; line-height: 1.6; margin-top: 0;"">
+                Xin chào <strong style=""color: #0f172a;"">" + fullName + @"</strong>,
+            </p>
+            <p style=""font-size: 14px; color: #64748b; line-height: 1.6;"">
+                Cảm ơn bạn đã đăng ký tài khoản. Dưới đây là thông tin đăng nhập được khởi tạo cho bạn:
+            </p>
 
-                mailMessage.AppendLine("<b>" + L("UserName") + "</b>: " + user.UserName + "<br />");
+            <!-- Info Box -->
+            <div style=""background-color: #f8fafc; border-left: 4px solid #d4af37; padding: 18px 20px; border-radius: 6px; margin: 24px 0;"">
+                <table style=""width: 100%; border-collapse: collapse; font-size: 14px;"">
+                    <tr>
+                        <td style=""padding: 4px 0; color: #64748b; width: 120px;"">Hệ thống:</td>
+                        <td style=""padding: 4px 0; color: #0f172a; font-weight: 600;"">" + displayTenancy + @"</td>
+                    </tr>
+                    <tr>
+                        <td style=""padding: 4px 0; color: #64748b;"">Tài khoản:</td>
+                        <td style=""padding: 4px 0; color: #0f172a; font-weight: 600;"">" + user.UserName + @"</td>
+                    </tr>");
 
                 if (!plainPassword.IsNullOrEmpty())
                 {
-                    mailMessage.AppendLine("<b>" + L("Password") + "</b>: " + plainPassword + "<br />");
+                    mailMessage.AppendLine(@"
+                    <tr>
+                        <td style=""padding: 4px 0; color: #64748b;"">Mật khẩu:</td>
+                        <td style=""padding: 4px 0; color: #0f172a; font-weight: 600;"">" + plainPassword + @"</td>
+                    </tr>");
                 }
 
-                mailMessage.AppendLine("<br />");
-                mailMessage.AppendLine(L("EmailActivation_ClickTheLinkBelowToVerifyYourEmail") + "<br /><br />");
-                mailMessage.AppendLine("<a style=\"" + _emailButtonStyle + "\" bg-color=\"" + _emailButtonColor +
-                                       "\" href=\"" + link + "\">" + L("Verify") + "</a>");
-                mailMessage.AppendLine("<br />");
-                mailMessage.AppendLine("<br />");
-                mailMessage.AppendLine("<br />");
-                mailMessage.AppendLine("<span style=\"font-size: 9pt;\">" +
-                                       L("EmailMessage_CopyTheLinkBelowToYourBrowser") + "</span><br />");
-                mailMessage.AppendLine("<span style=\"font-size: 8pt;\">" + link + "</span>");
+                mailMessage.AppendLine(@"
+                </table>
+                        </div>
 
-                await ReplaceBodyAndSendAsync(user.EmailAddress, L("EmailActivation_Subject"), emailTemplate,
-                    mailMessage);
+                        <!-- Call To Action Button -->
+                        <div style=""text-align: center; margin: 36px 0;"">
+                            <a href=""" + link + @""" style=""background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%); color: #ffffff; text-decoration: none; padding: 14px 36px; border-radius: 30px; font-weight: 600; font-size: 14px; display: inline-block; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(184, 134, 11, 0.25);"">
+                                KÍCH HOẠT TÀI KHOẢN NGAY
+                            </a>
+                        </div>
+
+                        <p style=""font-size: 13px; color: #94a3b8; line-height: 1.5; margin-bottom: 8px;"">
+                            Nếu nút bấm trên không hoạt động, bạn có thể sao chép và dán liên kết dưới đây vào trình duyệt:
+                        </p>
+                        <div style=""word-break: break-all; font-size: 12px; color: #2563eb; background-color: #f1f5f9; padding: 10px; border-radius: 6px; font-family: monospace;"">
+                            " + link + @"
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div style=""background-color: #f8fafc; border-top: 1px solid #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;"">
+                        <p style=""margin: 0;"">Email này được gửi tự động, vui lòng không phản hồi trực tiếp.</p>
+                        <p style=""margin: 4px 0 0 0;"">&copy; Nha Khoa Thiên Phúc. All rights reserved.</p>
+                    </div>
+                </div>");
+
+                await ReplaceBodyAndSendAsync(
+                    user.EmailAddress,
+                    "Xác thực địa chỉ Email - Nha Khoa Thiên Phúc",
+                    emailTemplate,
+                    mailMessage
+                );
             });
         }
 
@@ -137,29 +189,22 @@ namespace ThienPhucDental.Authorization.Users
         public async Task SendPasswordResetLinkAsync(User user, string link = null)
         {
             var expirationHours = await _settingManager.GetSettingValueAsync<int>(
-                AppSettings.UserManagement.Password.PasswordResetCodeExpirationHours
-            );
+     AppSettings.UserManagement.Password.PasswordResetCodeExpirationHours
+ );
 
             if (user.PasswordResetCode.IsNullOrEmpty())
             {
-                throw new Exception("PasswordResetCode should be set in order to send password reset link.");
+                throw new Exception("Mã đặt lại mật khẩu chưa được khởi tạo.");
             }
 
             var tenancyName = GetTenancyNameOrNull(user.TenantId);
-            var emailTemplate = GetTitleAndSubTitle(user.TenantId, L("PasswordResetEmail_Title"),
-                L("PasswordResetEmail_SubTitle"));
+            var emailTemplate = GetTitleAndSubTitle(user.TenantId, "Yêu Cầu Đặt Lại Mật Khẩu", "Hướng dẫn thiết lập lại mật khẩu tài khoản");
+
+            var fullName = $"{user.Name} {user.Surname}".Trim();
+            var displayTenancy = !tenancyName.IsNullOrEmpty() ? tenancyName : "Nha Khoa Thiên Phúc";
             var mailMessage = new StringBuilder();
 
-            mailMessage.AppendLine("<b>" + L("NameSurname") + "</b>: " + user.Name + " " + user.Surname + "<br />");
-
-            if (!tenancyName.IsNullOrEmpty())
-            {
-                mailMessage.AppendLine("<b>" + L("TenancyName") + "</b>: " + tenancyName + "<br />");
-            }
-
-            mailMessage.AppendLine("<b>" + L("UserName") + "</b>: " + user.UserName + "<br />");
-            mailMessage.AppendLine("<b>" + L("ResetCode") + "</b>: " + user.PasswordResetCode + "<br />");
-
+            // Xử lý link nếu có
             if (!link.IsNullOrEmpty())
             {
                 link = link.Replace("{userId}", user.Id.ToString());
@@ -176,21 +221,94 @@ namespace ThienPhucDental.Authorization.Users
                 }
 
                 link = EncryptQueryParameters(link);
-
-                mailMessage.AppendLine("<br />");
-                mailMessage.AppendLine(L("PasswordResetEmail_ClickTheLinkBelowToResetYourPassword") + "<br /><br />");
-                mailMessage.AppendLine("<a style=\"" + _emailButtonStyle + "\" bg-color=\"" + _emailButtonColor +
-                                       "\" href=\"" + link + "\">" + L("Reset") + "</a>");
-                mailMessage.AppendLine("<br />");
-                mailMessage.AppendLine("<br />");
-                mailMessage.AppendLine("<br />");
-                mailMessage.AppendLine("<span style=\"font-size: 9pt;\">" +
-                                       L("EmailMessage_CopyTheLinkBelowToYourBrowser") + "</span><br />");
-                mailMessage.AppendLine("<span style=\"font-size: 8pt;\">" + link + "</span>");
             }
 
-            await ReplaceBodyAndSendAsync(user.EmailAddress, L("PasswordResetEmail_Subject"), emailTemplate,
-                mailMessage);
+            // Template HTML Luxury & Chuyên nghiệp
+            mailMessage.AppendLine(@"
+<div style=""max-width: 580px; margin: 0 auto; background-color: #ffffff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #2c3e50; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #eaeaea;"">
+    
+    <!-- Header / Banner -->
+    <div style=""background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 32px 24px; text-align: center;"">
+        <h1 style=""color: #d4af37; font-size: 22px; font-weight: 600; letter-spacing: 1px; margin: 0; text-transform: uppercase;"">
+            ĐẶT LẠI MẬT KHẨU
+        </h1>
+        <p style=""color: #94a3b8; font-size: 13px; margin-top: 6px; margin-bottom: 0;"">
+            Khôi phục quyền truy cập tài khoản của bạn
+        </p>
+    </div>
+
+    <!-- Body Content -->
+    <div style=""padding: 36px 32px;"">
+        <p style=""font-size: 15px; color: #334155; line-height: 1.6; margin-top: 0;"">
+            Xin chào <strong style=""color: #0f172a;"">" + fullName + @"</strong>,
+        </p>
+        <p style=""font-size: 14px; color: #64748b; line-height: 1.6;"">
+            Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn tại hệ thống. Thông tin chi tiết:
+        </p>
+
+        <!-- Info Box -->
+        <div style=""background-color: #f8fafc; border-left: 4px solid #d4af37; padding: 18px 20px; border-radius: 6px; margin: 24px 0;"">
+            <table style=""width: 100%; border-collapse: collapse; font-size: 14px;"">
+                <tr>
+                    <td style=""padding: 4px 0; color: #64748b; width: 130px;"">Hệ thống:</td>
+                    <td style=""padding: 4px 0; color: #0f172a; font-weight: 600;"">" + displayTenancy + @"</td>
+                </tr>
+                <tr>
+                    <td style=""padding: 4px 0; color: #64748b;"">Tài khoản:</td>
+                    <td style=""padding: 4px 0; color: #0f172a; font-weight: 600;"">" + user.UserName + @"</td>
+                </tr>
+                <tr>
+                    <td style=""padding: 4px 0; color: #64748b;"">Mã xác thực:</td>
+                    <td style=""padding: 4px 0; color: #d4af37; font-weight: 700; letter-spacing: 1px;"">" + user.PasswordResetCode + @"</td>
+                </tr>
+                <tr>
+                    <td style=""padding: 4px 0; color: #64748b;"">Thời hạn hiệu lực:</td>
+                    <td style=""padding: 4px 0; color: #e11d48; font-weight: 600;"">" + expirationHours + @" giờ</td>
+                </tr>
+            </table>
+        </div>");
+
+            if (!link.IsNullOrEmpty())
+            {
+                mailMessage.AppendLine(@"
+        <p style=""font-size: 14px; color: #64748b; text-align: center; margin-top: 28px;"">
+            Vui lòng nhấn vào nút bên dưới để tiến hành thiết lập mật khẩu mới:
+        </p>
+
+        <!-- Call To Action Button -->
+        <div style=""text-align: center; margin: 28px 0 36px 0;"">
+            <a href=""" + link + @""" style=""background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%); color: #ffffff; text-decoration: none; padding: 14px 36px; border-radius: 30px; font-weight: 600; font-size: 14px; display: inline-block; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(184, 134, 11, 0.25);"">
+                ĐẶT LẠI MẬT KHẨU
+            </a>
+        </div>
+
+        <p style=""font-size: 13px; color: #94a3b8; line-height: 1.5; margin-bottom: 8px;"">
+            Nếu nút bấm trên không hoạt động, bạn có thể sao chép và dán liên kết dưới đây vào trình duyệt:
+        </p>
+        <div style=""word-break: break-all; font-size: 12px; color: #2563eb; background-color: #f1f5f9; padding: 10px; border-radius: 6px; font-family: monospace;"">
+            " + link + @"
+        </div>");
+            }
+
+            mailMessage.AppendLine(@"
+        <p style=""font-size: 13px; color: #e11d48; margin-top: 24px; line-height: 1.5; background-color: #fff1f2; padding: 12px; border-radius: 6px;"">
+            ⚠️ <strong>Lưu ý:</strong> Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email hoặc liên hệ với quản trị viên để bảo vệ tài khoản.
+        </p>
+    </div>
+
+    <!-- Footer -->
+    <div style=""background-color: #f8fafc; border-top: 1px solid #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;"">
+        <p style=""margin: 0;"">Email này được gửi tự động, vui lòng không phản hồi trực tiếp.</p>
+        <p style=""margin: 4px 0 0 0;"">&copy; Nha Khoa Thiên Phúc. All rights reserved.</p>
+    </div>
+</div>");
+
+            await ReplaceBodyAndSendAsync(
+                user.EmailAddress,
+                "Yêu cầu Đặt lại Mật khẩu - Nha Khoa Thiên Phúc",
+                emailTemplate,
+                mailMessage
+            );
         }
 
         public async Task TryToSendChatMessageMail(User user, string senderUsername, string senderTenancyName,
