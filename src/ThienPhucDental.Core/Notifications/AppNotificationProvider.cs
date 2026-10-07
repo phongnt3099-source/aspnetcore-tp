@@ -24,6 +24,14 @@ namespace ThienPhucDental.Notifications
                     permissionDependency: new SimplePermissionDependency(AppPermissions.Pages_Tenants)
                     )
                 );
+            context.Manager.Add(
+                new NotificationDefinition(
+                    "App.Appointment.OverdueAlert",
+                    displayName: L("AppointmentOverdueAlertNotificationDefinition"),
+                    // Không gán permissionDependency để người tạo lịch luôn nhận được tin
+                    permissionDependency: null
+                )
+            );
         }
 
         private static ILocalizableString L(string name)

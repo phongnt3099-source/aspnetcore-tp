@@ -10,6 +10,11 @@
 
         string CreateEmailActivationUrlFormat(string tenancyName);
 
+
         string CreatePasswordResetUrlFormat(string tenancyName);
+
+        string CreateFaceRegistrationUrlFormat(int? tenantId);
+
+        string CreateFaceRegistrationUrlFormat(string tenancyName);
     }
 }

@@ -16,7 +16,10 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Abp.EntityFrameworkCore.EFPlus" Version="9.1.0" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.30.0" />
     <PackageReference Include="MiniExcel" Version="1.31.3" />
+    <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260627" />
+    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260627" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ThienPhucDental.Application.Shared\ThienPhucDental.Application.Shared.csproj" />

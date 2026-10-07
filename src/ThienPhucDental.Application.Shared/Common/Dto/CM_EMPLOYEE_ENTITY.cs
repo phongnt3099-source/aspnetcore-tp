@@ -51,6 +51,8 @@ namespace ThienPhucDental.Common.Dto
 
         public bool? IS_CREATE_USER { get; set; }
 
+        public int? USERID { get; set; }
+
         public string CREATE_DT { get; set; }
     }
 }

@@ -38,6 +38,7 @@ using ThienPhucDental.Net.Emailing;
 using ThienPhucDental.Notifications;
 using ThienPhucDental.Url;
 using ThienPhucDental.Organizations.Dto;
+using Abp.Timing;
 
 namespace ThienPhucDental.Authorization.Users
 {
@@ -65,7 +66,8 @@ namespace ThienPhucDental.Authorization.Users
         private readonly IRepository<OrganizationUnitRole, long> _organizationUnitRoleRepository;
         private readonly IOptions<UserOptions> _userOptions;
         private readonly IEmailSettingsChecker _emailSettingsChecker;
-        
+        private readonly IRepository<UserToken, long> _userTokenRepository;
+
         public UserAppService(
             RoleManager roleManager,
             IUserEmailer userEmailer,
@@ -84,7 +86,8 @@ namespace ThienPhucDental.Authorization.Users
             UserManager userManager,
             IRepository<UserOrganizationUnit, long> userOrganizationUnitRepository,
             IRepository<OrganizationUnitRole, long> organizationUnitRoleRepository, 
-            IOptions<UserOptions> userOptions, IEmailSettingsChecker emailSettingsChecker)
+            IOptions<UserOptions> userOptions, IEmailSettingsChecker emailSettingsChecker,
+            IRepository<UserToken, long> userTokenRepository)
         {
             _roleManager = roleManager;
             _userEmailer = userEmailer;
@@ -104,7 +107,9 @@ namespace ThienPhucDental.Authorization.Users
             _organizationUnitRoleRepository = organizationUnitRoleRepository;
             _userOptions = userOptions;
             _emailSettingsChecker = emailSettingsChecker;
-            _roleRepository = roleRepository;
+            _roleRepository = roleRepository; 
+            _userTokenRepository = userTokenRepository;
+
 
             AppUrlService = NullAppUrlService.Instance;
         }
@@ -406,6 +411,44 @@ namespace ThienPhucDental.Authorization.Users
                     input.User.Password
                 );
             }
+        }
+
+        [AbpAuthorize(AppPermissions.Pages_Administration_Users)]
+        public async Task SendFaceRegistrationLinkAsync(EntityDto<long> input)
+        {
+            var user = await UserManager.GetUserByIdAsync(input.Id);
+
+            // 1. Tạo token ngẫu nhiên
+            var token = Guid.NewGuid().ToString("N");
+
+            // 2. Để UserManager tạo bản ghi chuẩn trong AbpUserTokens
+            await UserManager.SetAuthenticationTokenAsync(
+                user,
+                loginProvider: "FaceRegistration",
+                tokenName: "MagicLinkToken",
+                tokenValue: token
+            );
+
+            // 3. Truy vấn bản ghi vừa tạo để cập nhật TenantId và ExpireDate
+            var userToken = await _userTokenRepository.FirstOrDefaultAsync(t =>
+                t.UserId == user.Id &&
+                t.LoginProvider == "FaceRegistration" &&
+                t.Name == "MagicLinkToken"
+            );
+
+            if (userToken != null)
+            {
+                userToken.TenantId = AbpSession.TenantId;
+                userToken.ExpireDate = Clock.Now.AddHours(4);
+                await _userTokenRepository.UpdateAsync(userToken);
+            }
+
+            // 4. Gửi mail
+            await _userEmailer.SendFaceRegistrationLinkAsync(
+                user,
+                token,
+                AppUrlService.CreateFaceRegistrationUrlFormat(AbpSession.TenantId)
+            );
         }
 
         private async Task FillRoleNames(IReadOnlyCollection<UserListDto> userListDtos)

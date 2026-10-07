@@ -14,5 +14,6 @@
         public const string TenantsMovedToEdition = "App.TenantsMovedToEdition";
         public const string DownloadInvalidImportUsers = "App.DownloadInvalidImportUsers";
         public const string MassNotification = "App.MassNotification";
+        public const string AppointmentOverdueAlert = "App.Appointment.OverdueAlert";
     }
 }

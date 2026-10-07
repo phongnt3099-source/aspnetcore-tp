@@ -38,5 +38,13 @@ namespace ThienPhucDental.Authorization.Users
         /// <param name="emailAddress">Email address</param>
         /// <param name="link">Email activation link</param>
         Task SendEmailChangeRequestLinkAsync(User user, string emailAddress, string link);
+
+        /// <summary>
+        /// Send face registration magic link to user's email address.
+        /// </summary>
+        /// <param name="user">User</param>
+        /// <param name="registrationToken">Token string</param>
+        /// <param name="link">Face registration link</param>
+        Task SendFaceRegistrationLinkAsync(User user, string registrationToken, string link = null);
     }
 }

@@ -76,6 +76,24 @@ namespace ThienPhucDental.Web.Url
             return resetLink;
         }
 
+        public string CreateFaceRegistrationUrlFormat(int? tenantId)
+        {
+            return CreateFaceRegistrationUrlFormat(GetTenancyName(tenantId));
+        }
+
+        public string CreateFaceRegistrationUrlFormat(string tenancyName)
+        {
+            var link = WebUrlService.GetSiteRootAddress(tenancyName).EnsureEndsWith('/') +
+                       "account/register-face?userId={userId}&token={token}&expireDate={expireDate}";
+
+            if (tenancyName != null)
+            {
+                link += "&tenantId={tenantId}";
+            }
+
+            return link;
+        }
+
 
         private string GetTenancyName(int? tenantId)
         {

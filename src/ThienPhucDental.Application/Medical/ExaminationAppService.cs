@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using ThienPhucDental.Authorization;
 using ThienPhucDental.Common.Dto;
 using ThienPhucDental.CoreModule.Consts;
 using ThienPhucDental.CoreModule.Utils;
@@ -16,18 +17,11 @@ using ThienPhucDental.ProcedureHelpers;
 namespace ThienPhucDental.Medical
 {
     [AbpAuthorize]
-    public class ExaminationAppService: IExaminationAppService
+    public class ExaminationAppService: ThienPhucDentalAppServiceBase,IExaminationAppService
     {
-        private readonly IStoreProcedureProvider _storeProcedureProvider;
-
-        public ExaminationAppService(IStoreProcedureProvider storeProcedureProvider)
-        {
-            _storeProcedureProvider = storeProcedureProvider;
-
-        }
         public async Task<MED_EXAMINATION_ENTITY> MED_EXAMINATION_GetById(string Id)
         {
-            var result = (await _storeProcedureProvider.GetDataFromStoredProcedure<MED_EXAMINATION_ENTITY>(CommonStoreProcedureConsts.MED_EXAMINATION_BYID, new
+            var result = (await storeProcedureProvider.GetDataFromStoredProcedure<MED_EXAMINATION_ENTITY>(CommonStoreProcedureConsts.MED_EXAMINATION_BYID, new
             {
                 P_EXM_ID = Id
             })).FirstOrDefault();
@@ -37,17 +31,17 @@ namespace ThienPhucDental.Medical
                 return null;
             }
 
-            result.TreatmentDetails = (await _storeProcedureProvider.GetDataFromStoredProcedure<MED_TREATMENT_DETAIL_ENTITY>(
+            result.TreatmentDetails = (await storeProcedureProvider.GetDataFromStoredProcedure<MED_TREATMENT_DETAIL_ENTITY>(
                 CommonStoreProcedureConsts.MED_TREATMENT_DETAIL_BYID,
                 new { @p_TD_EXM_ID = Id }
             ));
             return result;
         }
 
-        //[AbpAuthorize(AppPermissions.Pages_Common_AllCode)]
+        [AbpAuthorize(AppPermissions.Pages_Medical_Examination)]
         public async Task<PagedResultDto<MED_EXAMINATION_ENTITY>> MED_EXAMINATION_Search(MED_EXAMINATION_ENTITY input)
         {
-            var result = await _storeProcedureProvider.GetPagingData<MED_EXAMINATION_ENTITY>(CommonStoreProcedureConsts.MED_EXAMINATION_SEARCH, input);
+            var result = await storeProcedureProvider.GetPagingData<MED_EXAMINATION_ENTITY>(CommonStoreProcedureConsts.MED_EXAMINATION_SEARCH, input);
             
             if (result == null)
             {
@@ -58,14 +52,14 @@ namespace ThienPhucDental.Medical
 
         public async Task<ExaminationStatusCountDto> MED_EXAMINATION_CountStatus(MED_EXAMINATION_ENTITY input)
         {
-            var result = (await _storeProcedureProvider.GetDataFromStoredProcedure<ExaminationStatusCountDto>(CommonStoreProcedureConsts.MED_EXAMINATION_COUNTSTATUS, input)).FirstOrDefault();
+            var result = (await storeProcedureProvider.GetDataFromStoredProcedure<ExaminationStatusCountDto>(CommonStoreProcedureConsts.MED_EXAMINATION_COUNTSTATUS, input)).FirstOrDefault();
 
             return result;
         }
 
         public async Task<List<ExaminationTimelineDto>> MED_EXAMINATION_Timeline(string id)
         {
-            var result = (await _storeProcedureProvider.GetDataFromStoredProcedure<ExaminationTimelineDto>(CommonStoreProcedureConsts.MED_EXAMINATION_TIMELINE, new
+            var result = (await storeProcedureProvider.GetDataFromStoredProcedure<ExaminationTimelineDto>(CommonStoreProcedureConsts.MED_EXAMINATION_TIMELINE, new
             {
                 P_PATIENT_ID = id
             })).ToList();
@@ -73,7 +67,7 @@ namespace ThienPhucDental.Medical
             return result;
         }
 
-        //[AbpAuthorize(AppPermissions.Pages_Common_AllCode_Create)]
+        [AbpAuthorize(AppPermissions.Pages_Medical_Examination_Create)]
         public async Task<InsertResult> MED_EXAMINATION_Ins(MED_EXAMINATION_ENTITY input)
         {
             string treatmentDetailsXml = null;
@@ -115,12 +109,12 @@ namespace ThienPhucDental.Medical
                 P_MAKER_ID = input.MAKER_ID,
                 TreatmentDetailsXML = treatmentDetailsXml
             };
-            var result = (await _storeProcedureProvider
+            var result = (await storeProcedureProvider
                 .GetDataFromStoredProcedure<InsertResult>(CommonStoreProcedureConsts.MED_EXAMINATION_INS, parameters)).FirstOrDefault();
             return result;
         }
 
-        //[AbpAuthorize(AppPermissions.Pages_Common_AllCode_Update)]
+        [AbpAuthorize(AppPermissions.Pages_Medical_Examination_Update)]
         public async Task<InsertResult> MED_EXAMINATION_Upd(MED_EXAMINATION_ENTITY input)
         {
             string treatmentDetailsXml = null;
@@ -163,23 +157,24 @@ namespace ThienPhucDental.Medical
                 P_MAKER_ID = input.MAKER_ID,
                 TreatmentDetailsXML = treatmentDetailsXml
             };
-            return (await _storeProcedureProvider
+            return (await storeProcedureProvider
                 .GetDataFromStoredProcedure<InsertResult>(CommonStoreProcedureConsts.MED_EXAMINATION_UPD, parameters)).FirstOrDefault();
         }
 
-        // [AbpAuthorize(AppPermissions.Pages_Common_AllCode_Delete)]
+         [AbpAuthorize(AppPermissions.Pages_Medical_Examination_Delete)]
         public async Task<CommonResult> MED_EXAMINATION_Del(string id)
         {
-            var result = (await _storeProcedureProvider
+            var result = (await storeProcedureProvider
                 .GetDataFromStoredProcedure<CommonResult>(CommonStoreProcedureConsts.MED_EXAMINATION_DEL, new
                 {
-                    P_EXM_ID = id
+                    P_EXM_ID = id,
+                    P_MAKER_ID = GetCurrentUserName()
                 })).FirstOrDefault();
             return result;
         }
         public async Task<List<MED_EXAMINATION_ENTITY>> MED_EXAMINATION_DROPDOWNLIST()
         {
-            var result = await _storeProcedureProvider
+            var result = await storeProcedureProvider
                 .GetDataFromStoredProcedure<MED_EXAMINATION_ENTITY>(CommonStoreProcedureConsts.MED_EXAMINATION_DROPDOWNLIST, new
                 {
                 });

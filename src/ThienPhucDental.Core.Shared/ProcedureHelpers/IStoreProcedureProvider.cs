@@ -8,9 +8,9 @@ namespace ThienPhucDental.ProcedureHelpers
 {
     public interface IStoreProcedureProvider
     {
-        string ConnectionString { get; set; }
         Task<List<TModel>> GetDataFromStoredProcedure<TModel>(string storedProcName, object parameters) where TModel : class;
         Task<PagedResultDto<TModel>> GetPagingData<TModel>(string storedProcName, object parameters) where TModel : class;
+        Task<List<dynamic>> GetMultiResultValueFromStore(string storedProcName, object parameters);
 
     }
 }

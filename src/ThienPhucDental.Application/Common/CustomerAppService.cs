@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using ThienPhucDental.Authorization;
 using ThienPhucDental.Common.Dto;
 using ThienPhucDental.CoreModule.Consts;
 using ThienPhucDental.CoreModule.Utils;
@@ -40,11 +41,12 @@ namespace ThienPhucDental.Common
             return result;
         }
 
-        public async Task<List<CM_CUSTOMER_ENTITY>> CM_CUSTOMER_DROPDOWNLIST()
+        public async Task<List<CM_CUSTOMER_ENTITY>> CM_CUSTOMER_DROPDOWNLIST(string search_keyword)
         {
             var result = await _storeProcedureProvider
                 .GetDataFromStoredProcedure<CM_CUSTOMER_ENTITY>(CommonStoreProcedureConsts.CM_CUSTOMER_DROPDOWNLIST, new
                 {
+                    P_SEARCH_KEYWORD = search_keyword
                 });
 
             return result;
@@ -61,14 +63,14 @@ namespace ThienPhucDental.Common
             return result;
         }
 
-        //[AbpAuthorize(AppPermissions.Pages_Common_AllCode)]
+        [AbpAuthorize(AppPermissions.Pages_Common_Customer)]
         public async Task<PagedResultDto<CM_CUSTOMER_ENTITY>> CM_CUSTOMER_Search(CM_CUSTOMER_ENTITY input)
         {
             var result = await _storeProcedureProvider.GetPagingData<CM_CUSTOMER_ENTITY>(CommonStoreProcedureConsts.CM_CUSTOMER_SEARCH, input);
             return result;
         }
 
-        //[AbpAuthorize(AppPermissions.Pages_Common_AllCode_Create)]
+        [AbpAuthorize(AppPermissions.Pages_Common_Customer_Create)]
         public async Task<InsertResult> CM_CUSTOMER_Ins(CM_CUSTOMER_ENTITY input)
         {
             string relationXml = null;
@@ -97,14 +99,14 @@ namespace ThienPhucDental.Common
             return result;
         }
 
-        //[AbpAuthorize(AppPermissions.Pages_Common_AllCode_Update)]
+        [AbpAuthorize(AppPermissions.Pages_Common_Customer_Update)]
         public async Task<InsertResult> CM_CUSTOMER_Upd(CM_CUSTOMER_ENTITY input)
         {
             return (await _storeProcedureProvider
                 .GetDataFromStoredProcedure<InsertResult>(CommonStoreProcedureConsts.CM_CUSTOMER_UPD, input)).FirstOrDefault();
         }
 
-        // [AbpAuthorize(AppPermissions.Pages_Common_AllCode_Delete)]
+         [AbpAuthorize(AppPermissions.Pages_Common_Customer_Delete)]
         public async Task<CommonResult> CM_CUSTOMER_Del(string id)
         {
             var result = (await _storeProcedureProvider

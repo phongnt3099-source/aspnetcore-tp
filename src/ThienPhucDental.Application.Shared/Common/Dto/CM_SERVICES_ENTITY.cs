@@ -30,5 +30,6 @@ namespace ThienPhucDental.Common.Dto
         public string UPDATE_DT { get; set; }
         public string UPDATE_USER { get; set; }
         public bool? ISACTIVE { get; set; }
+        public bool? FLAG_SYS_VALID { get; set; }
     }
 }

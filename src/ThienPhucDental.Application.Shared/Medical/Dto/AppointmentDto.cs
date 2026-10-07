@@ -10,11 +10,14 @@ namespace ThienPhucDental.Medical.Dto
 
         public string APP_DATE { get; set; }
 
-        public string APP_TIME { get; set; }
-
         public int RANGE_TIME { get; set; }
+
         public string HOUR { get; set; }
+
         public string MINUTE { get; set; }
+
+        public string START_TIME { get; set; }
+
         public string SLOT_NAME { get; set; }
 
         public string APP_CUST_ID { get; set; }
@@ -29,13 +32,20 @@ namespace ThienPhucDental.Medical.Dto
 
         public string APP_CONTENT { get; set; }
 
-        public string APP_RECORD_STATUS { get; set; }
+        public string CUS_NAME { get; set; }
 
-        public string APP_MAKER_ID { get; set; }
+        public string CUS_PHONE { get; set; }
 
-        public DateTime? APP_CREATE_DT { get; set; }
+        public string DOC_ID { get; set; }
 
-        public string CUST_NAME { get; set; }
         public string DOC_NAME { get; set; }
+
+        public bool? IWarn { get; set; }
+
+        public string RECORD_STATUS { get; set; }
+
+        public string MAKER_ID { get; set; }
+
+        public string CREATE_DT { get; set; }
     }
 }

@@ -111,15 +111,68 @@
         public const string Pages_Common_AllCode_Update = "Pages.Common.AllCode.Update";
         public const string Pages_Common_AllCode_Delete = "Pages.Common.AllCode.Delete";
 
+        public const string Pages_Common_Customer = "Pages.Common.Customer";
+        public const string Pages_Common_Customer_Create = "Pages.Common.Customer.Create";
+        public const string Pages_Common_Customer_Update = "Pages.Common.Customer.Update";
+        public const string Pages_Common_Customer_Delete = "Pages.Common.Customer.Delete";
+        public const string Pages_Common_Customer_ViewDetail = "Pages.Common.Customer.ViewDetail";
+        public const string Pages_Common_Customer_Print = "Pages.Common.Customer.Print";
+
+        public const string Pages_Common_Employee = "Pages.Common.Employee";
+        public const string Pages_Common_Employee_Create = "Pages.Common.Employee.Create";
+        public const string Pages_Common_Employee_Update = "Pages.Common.Employee.Update";
+        public const string Pages_Common_Employee_Delete = "Pages.Common.Employee.Delete";
+
+        public const string Pages_Common_Service = "Pages.Common.Service";
+        public const string Pages_Common_Service_Create = "Pages.Common.Service.Create";
+        public const string Pages_Common_Service_Update = "Pages.Common.Service.Update";
+        public const string Pages_Common_Service_Delete = "Pages.Common.Service.Delete";
+
+        public const string Pages_Common_ServiceType = "Pages.Common.ServiceType";
+        public const string Pages_Common_ServiceType_Create = "Pages.Common.ServiceType.Create";
+        public const string Pages_Common_ServiceType_Update = "Pages.Common.ServiceType.Update";
+        public const string Pages_Common_ServiceType_Delete = "Pages.Common.ServiceType.Delete";
+
+        public const string Pages_Medical_Appointment = "Pages.Medical.Appointment";
+        public const string Pages_Medical_Appointment_Create = "Pages.Medical.Appointment.Create";
+        public const string Pages_Medical_Appointment_Update = "Pages.Medical.Appointment.Update";
+        public const string Pages_Medical_Appointment_Delete = "Pages.Medical.Appointment.Delete";
+
         public const string Pages_Medical_Examination = "Pages.Medical.Examination";
         public const string Pages_Medical_Examination_Create = "Pages.Medical.Examination.Create";
         public const string Pages_Medical_Examination_Update = "Pages.Medical.Examination.Update";
         public const string Pages_Medical_Examination_Delete = "Pages.Medical.Examination.Delete";
+        public const string Pages_Medical_Examination_Print = "Pages.Medical.Examination.Print";
 
-        public const string Pages_Finance_Transaction = "Pages.Finance_Transaction";
-        public const string Pages_Finance_Transaction_Create = "Pages.Finance_Transaction.Create";
-        public const string Pages_Finance_Transaction_Print = "Pages.Finance_Transaction.Print";
-        public const string Pages_Finance_Transaction_EditLast = "Pages.Finance_Transaction.EditLast";
-        public const string Pages_Finance_Transaction_AdminBypass = "Pages.Finance_Transaction.AdminBypass";
+        public const string Pages_Finance_Transaction = "Pages.Finance.Transaction";
+        public const string Pages_Finance_Transaction_Create = "Pages.Finance.Transaction.Create";
+        public const string Pages_Finance_Transaction_Print = "Pages.Finance.Transaction.Print";
+        public const string Pages_Finance_Transaction_Update = "Pages.Finance.Transaction.Edit";
+        public const string Pages_Finance_Transaction_AdminBypass = "Pages.Finance.Transaction.AdminBypass";
+        public const string Pages_Finance_Transaction_Delete = "Pages.Common.Transaction.Delete";
+
+        // --- HOLIDAY ---
+        public const string Pages_Common_Holiday = "Pages.Common.Holiday";
+        public const string Pages_Common_Holiday_Create = "Pages.Common.Holiday.Create";
+        public const string Pages_Common_Holiday_Update = "Pages.Common.Holiday.Update";
+        public const string Pages_Common_Holiday_Delete = "Pages.Common.Holiday.Delete";
+
+        // --- CLINIC NETWORK ---
+        public const string Pages_Common_ClinicNetwork = "Pages.Common.ClinicNetwork";
+        public const string Pages_Common_ClinicNetwork_Create = "Pages.Common.ClinicNetwork.Create";
+        public const string Pages_Common_ClinicNetwork_Update = "Pages.Common.ClinicNetwork.Update";
+        public const string Pages_Common_ClinicNetwork_Delete = "Pages.Common.ClinicNetwork.Delete";
+
+        // --- SHIFT ---
+        public const string Pages_Common_Shift = "Pages.Common.Shift";
+        public const string Pages_Common_Shift_Create = "Pages.Common.Shift.Create";
+        public const string Pages_Common_Shift_Update = "Pages.Common.Shift.Update";
+        public const string Pages_Common_Shift_Delete = "Pages.Common.Shift.Delete";
+
+        // --- EMPLOYEE SHIFT (PHÂN CÔNG CA NHÂN SỰ) ---
+        public const string Pages_Common_EmployeeShift = "Pages.Common.EmployeeShift";
+        public const string Pages_Common_EmployeeShift_Create = "Pages.Common.EmployeeShift.Create";
+        public const string Pages_Common_EmployeeShift_Update = "Pages.Common.EmployeeShift.Update";
+        public const string Pages_Common_EmployeeShift_Delete = "Pages.Common.EmployeeShift.Delete";
     }
 }

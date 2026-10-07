@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using ThienPhucDental.Helper;
 using ThienPhucDental.Configuration;
+using System.Threading;
 
 namespace ThienPhucDental.Heplers
 {
@@ -13,6 +14,7 @@ namespace ThienPhucDental.Heplers
         private readonly IConfigurationRoot appConfiguration;
         private readonly string logPath;
         private readonly bool enableEventLog;
+        private static readonly object _logLock = new object();
 
         public DetailLoggerHelper(IWebHostEnvironment env)
         {
@@ -94,23 +96,33 @@ namespace ThienPhucDental.Heplers
         public void Logger(string log)
         {
             if (!enableEventLog)
-            {
                 return;
-            }
-            var lo = true;
-            while (lo)
+
+            if (string.IsNullOrWhiteSpace(logPath))
+                return;
+
+            const int maxRetries = 3;
+            const int delayMs = 100;
+
+            lock (_logLock)
             {
-                try
+                for (int attempt = 0; attempt < maxRetries; attempt++)
                 {
-                    File.AppendAllText(logPath, log + Environment.NewLine);
-                    lo = false;
-                }
-                catch
-                {
+                    try
+                    {
+                        File.AppendAllText(logPath, log + Environment.NewLine);
+                        return;
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine(
+                            $"Logger failed (attempt {attempt + 1}/{maxRetries}): {ex.Message}");
 
+                        if (attempt < maxRetries - 1)
+                            Thread.Sleep(delayMs * (attempt + 1));
+                    }
                 }
             }
-
         }
     }
 }

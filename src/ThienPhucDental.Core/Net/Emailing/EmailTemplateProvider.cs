@@ -36,7 +36,7 @@ namespace ThienPhucDental.Net.Emailing
                     template = template.Replace("{THIS_YEAR}", DateTime.Now.Year.ToString());
                     //template = template.Replace("{TWITTER_URL}", GetTwitterIconUrl() ?? "#");
 
-                    var logoUrl = "https://lh3.googleusercontent.com/d/1_IW6yTChgurGdSVgqULStxswkZrKAPZ1";
+                    var logoUrl = "https://lh3.googleusercontent.com/d/1L0vSLS-eSpXtbelPNhml_Fwrc6Omi8RD";
 
                     return template.Replace("{EMAIL_LOGO_URL}", logoUrl);
                 }

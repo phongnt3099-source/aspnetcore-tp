@@ -43,6 +43,7 @@ using Abp.Extensions;
 using Abp.HtmlSanitizer;
 using Abp.HtmlSanitizer.Configuration;
 using ThienPhucDental.Authorization.Accounts;
+using Abp.AspNetCore.SignalR.Notifications;
 
 namespace ThienPhucDental.Web
 {
@@ -73,6 +74,9 @@ namespace ThienPhucDental.Web
             Configuration.DefaultNameOrConnectionString = _appConfiguration.GetConnectionString(
                 ThienPhucDentalConsts.ConnectionStringName
             );
+
+            // 2. Ép ABP sử dụng SignalR để phát thông báo thời gian thực
+            Configuration.Notifications.Notifiers.Add<SignalRRealTimeNotifier>();
 
             //Use database for language management
             Configuration.Modules.Zero().LanguageManagement.EnableDbLocalization();

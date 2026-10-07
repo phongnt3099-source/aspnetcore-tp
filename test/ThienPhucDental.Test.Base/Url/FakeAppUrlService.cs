@@ -28,5 +28,15 @@ namespace ThienPhucDental.Test.Base.Url
         {
             return "http://test.com/";
         }
+
+        public string CreateFaceRegistrationUrlFormat(int? tenantId)
+        {
+            return "http://test.com/";
+        }
+
+        public string CreateFaceRegistrationUrlFormat(string tenancyName)
+        {
+            return "http://test.com/";
+        }
     }
 }

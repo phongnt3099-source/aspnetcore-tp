@@ -35,5 +35,15 @@ namespace ThienPhucDental.Url
         {
             throw new NotImplementedException();
         }
+
+        public string CreateFaceRegistrationUrlFormat(int? tenantId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string CreateFaceRegistrationUrlFormat(string tenancyName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

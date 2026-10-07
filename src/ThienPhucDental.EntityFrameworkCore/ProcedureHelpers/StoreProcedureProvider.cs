@@ -18,6 +18,9 @@ using ThienPhucDental.Consts;
 using ThienPhucDental.Helper;
 using ThienPhucDental.Procedures.Attributes;
 using static Dapper.SqlMapper;
+using Microsoft.Extensions.Caching.Memory;
+using System.Threading;
+using Abp.Runtime.Caching;
 
 namespace ThienPhucDental.ProcedureHelpers
 {
@@ -36,298 +39,637 @@ namespace ThienPhucDental.ProcedureHelpers
 
     public class StoreProcedureProvider : IStoreProcedureProvider, ITransientDependency
     {
-        private readonly int commandTimeout = 30;
-        public string ConnectionString { get ; set ; }
-        public IDetailLoggerHelper detailLoggerHelper;
+        private readonly IClientConnection _clientConnection;
+        private readonly IDetailLoggerHelper _detailLoggerHelper;
+        private readonly SemaphoreSlim _connStrLock = new(1, 1);
+        private readonly int commandTimeout;
+        private string _connectionString;
+        private static readonly TimeSpan ParamsCacheDuration = TimeSpan.FromMinutes(30);
+        private static readonly TimeSpan DefinitionCacheDuration = TimeSpan.FromHours(6);
+        private readonly ICacheManager _cacheManager;
 
-        public StoreProcedureProvider(IWebHostEnvironment ev, IClientConnection clientConnection, IDetailLoggerHelper detailLoggerHelper)
+        private const string ParamsCacheName = "SP_Params_Cache";
+        private const string DefinitionCacheName = "SP_Definition_Cache";
+
+
+        public StoreProcedureProvider(
+            IWebHostEnvironment ev,
+            IClientConnection clientConnection,
+            IDetailLoggerHelper detailLoggerHelper,
+            IMemoryCache memoryCache,
+            ICacheManager cacheManager)
         {
-            this.detailLoggerHelper = detailLoggerHelper;
+            _detailLoggerHelper = detailLoggerHelper;
+            _clientConnection = clientConnection;
+            _cacheManager = cacheManager;
 
-            var task = clientConnection.GetConnectionString();
-            task.Wait();
-            ConnectionString = task.Result;
 
             try
             {
-                commandTimeout = ev.GetAppConfiguration().GetValue<int>("App:SqlServerCommandTimeout");
+                var timeout = ev.GetAppConfiguration().GetValue<int>("App:SqlServerCommandTimeout");
+                commandTimeout = timeout > 0 ? timeout : 30;
             }
-            catch
+            catch (Exception ex)
             {
-                commandTimeout = 3600;
+                detailLoggerHelper.Logger(
+                $"[StoreProcedureProvider] Không đọc được App:SqlServerCommandTimeout. " +
+                $"Dùng default 30 giây. Lỗi: {ex.Message}");
+                commandTimeout = 30;
             }
 
-            SqlMapper.AddTypeHandler(new NullableDateTimeHandler());
+        }
+
+        private async Task<string> GetConnectionStringAsync()
+        {
+            if (_connectionString != null)
+                return _connectionString;
+
+            await _connStrLock.WaitAsync();
+            try
+            {
+                if (_connectionString == null)
+                {
+                    var cs = await _clientConnection.GetConnectionString();
+                    if (string.IsNullOrWhiteSpace(cs))
+                        throw new UserFriendlyException("Connection string rỗng hoặc null.");
+                    _connectionString = cs;
+                }
+            }
+            finally
+            {
+                _connStrLock.Release();
+            }
+
+            return _connectionString;
         }
 
         public class NullableDateTimeHandler : SqlMapper.TypeHandler<DateTime?>
         {
             public override void SetValue(IDbDataParameter parameter, DateTime? value)
             {
-                if (value.HasValue)
-                    parameter.Value = value.Value;
-                else
-                    parameter.Value = DBNull.Value;
+                parameter.Value = value.HasValue ? value.Value : (object)DBNull.Value;
             }
 
             public override DateTime? Parse(object value)
             {
                 if (value == null || value is DBNull) return null;
-                var typeofvalue = value.GetType();
-                if (typeofvalue != typeof(DateTime) && typeofvalue != typeof(DateTime?))
-                {
-                    return null;
-                }
-                return (DateTime)value;
+                if (value is DateTime dt) return dt;
+                return null;
             }
         }
 
-        public async Task<List<TModel>> GetDataFromStoredProcedure<TModel>(string storedProcName, object parameters) where TModel : class
-        {   
-            var parameterInfos = await GetParameterInfos(storedProcName);
+        //public async Task<List<TModel>> GetDataFromStoredProcedure<TModel>(string storedProcName, object parameters) where TModel : class
+        //{   
+        //    var parameterInfos = await GetParameterInfos(storedProcName);
+        //    var dapperParams = new DynamicParameters();
+        //    var outputPropertyTable = new Dictionary<string, PropertyInfo>();
+
+        //    if (parameters != null)
+        //    {
+        //        var properties = parameters.GetType().GetProperties().Where(x => x != null);
+
+        //        List<StoreParameterInfoDto> procedureInfoInProperties = new List<StoreParameterInfoDto>();
+
+        //        foreach (var property in properties)
+        //        {
+        //            var paramName = GetParameterName(property);
+
+        //            var parameterInfo = GetParameterInfo(parameterInfos, paramName);
+
+        //            procedureInfoInProperties.Add(parameterInfo);
+
+        //            if (parameterInfo == null)
+        //            {
+        //                continue;
+        //            }
+
+        //            var direction = GetParameterDirection(parameterInfo);
+
+        //            if (direction == ParameterDirection.InputOutput || direction == ParameterDirection.Output)
+        //            {
+        //                outputPropertyTable.Add(parameterInfo.PARAMETER_NAME, property);
+        //            }
+
+        //            var parameterValue = GetParameterValue(property, parameters);
+
+        //            dapperParams.Add(parameterInfo.PARAMETER_NAME, parameterValue, null, direction);
+        //        }
+
+
+        //        // add property not include in class parameters
+        //        //foreach (var parameterInfo in parameterInfos.Where(x => x!=null && !procedureInfoInProperties.Any(pi => pi != null &&  x.PARAMETER_NAME.ToLower().Replace("@", "").Replace("p_", "") == pi.PARAMETER_NAME.ToLower().Replace("@", "").Replace("p_", ""))))
+        //        //{
+        //        //    dapperParams.Add(parameterInfo.PARAMETER_NAME);
+        //        //}
+
+        //        var names = dapperParams.ParameterNames.ToList();
+        //        foreach (var parameterInfo in parameterInfos)
+        //        {
+        //            if (!names.Any(x => "@" + x == parameterInfo.PARAMETER_NAME))
+        //            {
+        //                dapperParams.Add(parameterInfo.PARAMETER_NAME, null, null, GetParameterDirection(parameterInfo));
+        //            }
+        //        }
+
+        //    }
+        //    try
+        //    {
+        //        foreach (var item in dapperParams.ParameterNames)
+        //        {
+        //            var tmp = item;
+        //            var value = dapperParams.Get<object>(tmp);
+        //        }
+        //        using (var conn = new SqlConnection(ConnectionString))
+        //        {
+        //            //          var rr = await conn.QueryAsync<TModel>(storedProcName, dapperParams, null, null, System.Data.CommandType.StoredProcedure);
+        //            var rr = (List<TModel>)conn.Query<TModel>(storedProcName, dapperParams, null, true, commandTimeout, System.Data.CommandType.StoredProcedure);
+        //            foreach (var pair in outputPropertyTable)
+        //            {
+        //                pair.Value.SetValue(parameters, dapperParams.Get<object>(pair.Key));
+        //            }
+        //            return rr;
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        throw new UserFriendlyException(e.Message);
+        //    }
+
+        //}
+        public async Task<List<TModel>> GetDataFromStoredProcedure<TModel>(
+        string storedProcName, object parameters) where TModel : class
+        {
+            var parameterInfos = await GetParameterInfosCachedAsync(storedProcName); 
             var dapperParams = new DynamicParameters();
-            var outputPropertyTable = new Dictionary<string, PropertyInfo>();
+            var outputPropertyTable = new Dictionary<string, PropertyInfo>(StringComparer.OrdinalIgnoreCase);
 
             if (parameters != null)
             {
-                var properties = parameters.GetType().GetProperties().Where(x => x != null);
-
-                List<StoreParameterInfoDto> procedureInfoInProperties = new List<StoreParameterInfoDto>();
+                var properties = parameters.GetType().GetProperties();
 
                 foreach (var property in properties)
                 {
                     var paramName = GetParameterName(property);
-
                     var parameterInfo = GetParameterInfo(parameterInfos, paramName);
-
-                    procedureInfoInProperties.Add(parameterInfo);
-
-                    if (parameterInfo == null)
-                    {
-                        continue;
-                    }
+                    if (parameterInfo == null) continue;
 
                     var direction = GetParameterDirection(parameterInfo);
 
+                    
+                    var bareName = parameterInfo.PARAMETER_NAME.TrimStart('@');
+
                     if (direction == ParameterDirection.InputOutput || direction == ParameterDirection.Output)
                     {
-                        outputPropertyTable.Add(parameterInfo.PARAMETER_NAME, property);
+                        outputPropertyTable[bareName] = property;  
                     }
 
-                    var parameterValue = GetParameterValue(property, parameters);
+                   
+                    var parameterValue = direction == ParameterDirection.Output
+                        ? null
+                        : GetParameterValue(property, parameters);
 
-                    dapperParams.Add(parameterInfo.PARAMETER_NAME, parameterValue, null, direction);
+                    dapperParams.Add(bareName, parameterValue, null, direction);
                 }
 
-
-                // add property not include in class parameters
-                //foreach (var parameterInfo in parameterInfos.Where(x => x!=null && !procedureInfoInProperties.Any(pi => pi != null &&  x.PARAMETER_NAME.ToLower().Replace("@", "").Replace("p_", "") == pi.PARAMETER_NAME.ToLower().Replace("@", "").Replace("p_", ""))))
-                //{
-                //    dapperParams.Add(parameterInfo.PARAMETER_NAME);
-                //}
-
-                var names = dapperParams.ParameterNames.ToList();
+                
+                var names = new HashSet<string>(dapperParams.ParameterNames, StringComparer.OrdinalIgnoreCase);
                 foreach (var parameterInfo in parameterInfos)
                 {
-                    if (!names.Any(x => "@" + x == parameterInfo.PARAMETER_NAME))
-                    {
-                        dapperParams.Add(parameterInfo.PARAMETER_NAME, null, null, GetParameterDirection(parameterInfo));
-                    }
-                }
+                    var bareName = parameterInfo.PARAMETER_NAME.TrimStart('@');
+                    if (names.Contains(bareName)) continue;
 
+                    dapperParams.Add(bareName, null, null, GetParameterDirection(parameterInfo));
+                }
             }
+
             try
             {
-                foreach (var item in dapperParams.ParameterNames)
+                var connStr = await GetConnectionStringAsync();
+                using (var conn = new SqlConnection(connStr))
                 {
-                    var tmp = item;
-                    var value = dapperParams.Get<object>(tmp);
-                }
-                using (var conn = new SqlConnection(ConnectionString))
-                {
-                    //          var rr = await conn.QueryAsync<TModel>(storedProcName, dapperParams, null, null, System.Data.CommandType.StoredProcedure);
-                    var rr = (List<TModel>)conn.Query<TModel>(storedProcName, dapperParams, null, true, commandTimeout, System.Data.CommandType.StoredProcedure);
+                    await conn.OpenAsync();
+
+                    var queryResult = await conn.QueryAsync<TModel>(
+                        storedProcName, dapperParams,
+                        commandType: CommandType.StoredProcedure,
+                        commandTimeout: commandTimeout);
+
+                    var rr = queryResult.ToList();
+
+                    
                     foreach (var pair in outputPropertyTable)
                     {
-                        pair.Value.SetValue(parameters, dapperParams.Get<object>(pair.Key));
+                        var val = dapperParams.Get<object>(pair.Key);
+                        if (val is DBNull) val = null;
+                        pair.Value.SetValue(parameters, val);
                     }
+
                     return rr;
                 }
             }
+            catch (UserFriendlyException) { throw; }
             catch (Exception e)
             {
-                throw new UserFriendlyException(e.Message);
+                throw new UserFriendlyException(e.Message, e);  
+            }
+        }
+
+        public async Task<List<dynamic>> GetMultiResultValueFromStore(string storedProcName, object parameters)
+        {
+            var list = await GetDataFromStoredProcedure<dynamic>(storedProcName, parameters);
+            return list;
+        }
+
+        //public async Task<PagedResultDto<TModel>> GetPagingData<TModel>(string storedProcName, object parameters) where TModel : class
+        //{
+        //    try
+        //    {
+        //        var parameterInfos = await GetParameterInfos(storedProcName);
+        //        if (parameters != null)
+        //        {
+        //            var properties = parameters.GetType().GetProperties().Where(x => x != null);
+        //            int maxResultCount = (int?)properties.Where(x => x.Name == "MaxResultCount").FirstOrDefault()?.GetValue(parameters) ?? 0;
+
+        //            if (maxResultCount == -1)
+        //            {
+        //                Stopwatch st = new Stopwatch();
+
+        //                st.Start();
+
+        //                var items = await GetDataFromStoredProcedure<TModel>(storedProcName, parameters);
+
+        //                st.Stop();
+
+        //                return new PagedResultDto<TModel>()
+        //                {
+        //                    Items = items,
+        //                    TotalCount = items.Count
+        //                };
+        //            }
+
+        //            int totalCount = 0, skipCount = 0;
+        //            string sorting = "";
+
+        //            var totalCountProperty = properties.Where(x => x.Name == "TotalCount").FirstOrDefault();
+
+        //            totalCount = (int?)totalCountProperty?.GetValue(parameters) ?? 0;
+        //            skipCount = (int?)properties.Where(x => x.Name == "SkipCount").FirstOrDefault()?.GetValue(parameters) ?? 0;
+        //            sorting = (string)properties.Where(x => x.Name == "Sorting").FirstOrDefault()?.GetValue(parameters) ?? "";
+
+        //            string sortingInParam = sorting;
+
+        //            List<ReplaceStringResult> stringReplacers = new List<ReplaceStringResult>();
+
+        //            using (var conn = new SqlConnection(ConnectionString))
+        //            {
+        //                var procedureContent = (string)((IDictionary<string, object>)conn.Query("SELECT OBJECT_DEFINITION (OBJECT_ID(N'" + storedProcName + "')) as CONTENT", null, null, true, commandTimeout, System.Data.CommandType.Text).First())["CONTENT"];
+
+        //                procedureContent = ExtractFromString(procedureContent, "BEGIN -- PAGING", "END -- PAGING").First().Text;
+
+        //                foreach (var text in ExtractFromString(procedureContent, "-- PAGING BEGIN", "-- PAGING END"))
+        //                {
+        //                    var stringReplacer = new ReplaceStringResult();
+        //                    stringReplacer.IndexBegin = text.IndexBegin;
+        //                    stringReplacer.IndexEnd = text.IndexEnd;
+
+        //                    var orderBy = ExtractFromString(text.Text, "ORDER BY", "\n").Where(x => x.Text.IndexOf(")") == -1).FirstOrDefault();
+
+        //                    if (orderBy != null)
+        //                    {
+        //                        if (sorting.IsNullOrWhiteSpace())
+        //                        {
+        //                            sorting = orderBy.Text;
+        //                        }
+        //                    }
+
+        //                    if (sorting.IsNullOrWhiteSpace())
+        //                    {
+        //                        sorting = "(SELECT(1))";
+        //                    }
+
+        //                    if (orderBy != null)
+        //                    {
+
+        //                        var beginIndex = text.Text.IndexOf("select", StringComparison.CurrentCultureIgnoreCase);
+        //                        var endIndex = text.Text.IndexOf("top", beginIndex, StringComparison.CurrentCultureIgnoreCase);
+        //                        if (endIndex == -1 || text.Text.Substring(beginIndex + 6, endIndex - beginIndex - 6).Trim().Length != 0)
+        //                        {
+        //                            text.Text = text.Text.Substring(0, orderBy.IndexBegin - 8) + text.Text.Substring(orderBy.IndexEnd);
+        //                        }
+        //                        else
+        //                        {
+        //                            text.Text = text.Text.Substring(0, orderBy.IndexBegin - 8) + "ORDER BY " + sorting + text.Text.Substring(orderBy.IndexEnd);
+        //                        }
+        //                    }
+
+        //                    int index = text.Text.IndexOf("-- SELECT END");
+
+        //                    var textBetweenTop = ExtractFromString(text.Text.Substring(0, index).ToUpper(), "TOP", ")").FirstOrDefault();
+
+        //                    if (totalCount == 0)
+        //                    {
+        //                        if (textBetweenTop == null)
+        //                        {
+        //                            stringReplacer.Text = "\r\nBEGIN\r\nSELECT COUNT(*) " + text.Text.Substring(index);
+        //                        }
+        //                        else
+        //                        {
+        //                            stringReplacer.Text = "\r\nBEGIN\r\nSELECT COUNT(*) FROM(" + text.Text + ") COUNTER_TOP";
+        //                        }
+        //                    }
+        //                    else
+        //                    {
+        //                        stringReplacer.Text = "\r\nBEGIN" + stringReplacer.Text;
+        //                    }
+        //                    //stringReplacer.Text = skipCount == 0 ? $"\r\nSELECT COUNT(*) AS [COUNTER] FROM ({text.Text}) a\r\n" : "";
+
+
+
+
+        //                    if (!string.IsNullOrWhiteSpace(sortingInParam))
+        //                    {
+        //                        text.Text = "SELECT A.*, ROW_NUMBER() OVER (ORDER BY " + sorting + ") AS __ROWNUM FROM (" + text.Text + " ) A";
+        //                    }
+        //                    else
+        //                    {
+        //                        text.Text = text.Text.Insert(index, ", ROW_NUMBER() OVER (ORDER BY " + sorting + ") AS __ROWNUM");
+        //                    }
+
+        //                    //text.Text.Insert(index, "\r\n, ROW_NUMBER() OVER (ORDER BY " + sorting + ") AS __ROWNUM\r\n");
+
+        //                    text.Text = ";WITH QUERY_DATA AS ( " + text.Text +
+        //                        ") SELECT * FROM QUERY_DATA WHERE __ROWNUM > " + skipCount + " AND __ROWNUM <= " + (skipCount + maxResultCount) + "\r\nEND";
+
+        //                    stringReplacer.Text += text.Text;
+        //                    stringReplacers.Add(stringReplacer);
+        //                }
+
+
+        //                stringReplacers.Reverse();
+
+        //                foreach (var item in stringReplacers)
+        //                {
+        //                    procedureContent = procedureContent.Substring(0, item.IndexBegin) + item.Text + procedureContent.Substring(item.IndexEnd);
+        //                }
+
+        //                var declareParam = "DECLARE " + string.Join(",\r\n", parameterInfos.Select(x =>
+        //                {
+
+        //                    object parameterValue = null;
+        //                    var property = properties.Where(p => CompareName(p.Name, x.PARAMETER_NAME)).FirstOrDefault();
+
+        //                    if (property != null)
+        //                    {
+        //                        parameterValue = GetParameterValue(property, parameters);
+
+        //                    }
+        //                    return GetValuePaging(x, parameterValue);
+        //                }));
+
+        //                procedureContent = declareParam + "\r\n" + procedureContent;
+
+        //                var result = conn.QueryMultiple("-- PROCEDURE NAME: " + storedProcName + "\r\n\r\n" + procedureContent, null, null, commandTimeout);
+
+        //                if (totalCount == 0)
+        //                {
+        //                    totalCount = result.Read<int>().FirstOrDefault();
+        //                }
+
+        //                return new PagedResultDto<TModel>()
+        //                {
+        //                    Items = result.Read<TModel>().ToList(),
+        //                    TotalCount = totalCount
+        //                };
+        //            }
+        //        }
+
+        //        return null;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        throw new UserFriendlyException(e.Message);
+        //    }
+        //}
+
+        // 1. Cache cho Parameter Infos (Chỉ cache khi list khác null và có phần tử)
+        private async Task<List<StoreParameterInfoDto>> GetParameterInfosCachedAsync(string storedProcName)
+        {
+            string cacheKey = storedProcName.ToLowerInvariant();
+            var cache = _cacheManager.GetCache<string, List<StoreParameterInfoDto>>(ParamsCacheName);
+
+            var cachedParams = await cache.GetOrDefaultAsync(cacheKey);
+            if (cachedParams != null && cachedParams.Count > 0)
+            {
+                return cachedParams;
             }
 
+            var parameterInfos = await GetParameterInfos(storedProcName);
+
+            if (parameterInfos != null && parameterInfos.Count > 0)
+            {
+                await cache.SetAsync(cacheKey, parameterInfos, ParamsCacheDuration);
+            }
+
+            return parameterInfos;
+        }
+
+        // 2. Cache cho OBJECT_DEFINITION (Chỉ cache khi nội dung khác null/whitespace)
+        private async Task<string> GetProcedureContentCachedAsync(SqlConnection conn, string storedProcName)
+        {
+            string cacheKey = storedProcName.ToLowerInvariant();
+            var cache = _cacheManager.GetCache<string, string>(DefinitionCacheName);
+
+            var cachedContent = await cache.GetOrDefaultAsync(cacheKey);
+            if (!string.IsNullOrWhiteSpace(cachedContent))
+            {
+                return cachedContent;
+            }
+
+            var procedureContent = await conn.QuerySingleOrDefaultAsync<string>(
+                "SELECT OBJECT_DEFINITION(OBJECT_ID(@name))",
+                new { name = storedProcName },
+                commandTimeout: commandTimeout);
+
+            if (!string.IsNullOrWhiteSpace(procedureContent))
+            {
+                await cache.SetAsync(cacheKey, procedureContent, DefinitionCacheDuration);
+            }
+
+            return procedureContent;
         }
         public async Task<PagedResultDto<TModel>> GetPagingData<TModel>(string storedProcName, object parameters) where TModel : class
         {
             try
             {
-                var parameterInfos = await GetParameterInfos(storedProcName);
-                if (parameters != null)
+                // Sử dụng phiên bản cache cho Parameter Infos
+                var parameterInfos = await GetParameterInfosCachedAsync(storedProcName);
+                if (parameters == null)
                 {
-                    var properties = parameters.GetType().GetProperties().Where(x => x != null);
-                    int maxResultCount = (int?)properties.Where(x => x.Name == "MaxResultCount").FirstOrDefault()?.GetValue(parameters) ?? 0;
+                    return null;
+                }
 
-                    if (maxResultCount == -1)
+                var properties = parameters.GetType().GetProperties().Where(x => x != null).ToList();
+
+                int maxResultCount = (int?)properties.FirstOrDefault(x => x.Name == "MaxResultCount")?.GetValue(parameters) ?? 0;
+
+                if (maxResultCount == -1)
+                {
+                    var items = await GetDataFromStoredProcedure<TModel>(storedProcName, parameters);
+                    return new PagedResultDto<TModel>()
                     {
-                        Stopwatch st = new Stopwatch();
+                        Items = items,
+                        TotalCount = items.Count
+                    };
+                }
 
-                        st.Start();
+                int totalCount = (int?)properties.FirstOrDefault(x => x.Name == "TotalCount")?.GetValue(parameters) ?? 0;
+                int skipCount = (int?)properties.FirstOrDefault(x => x.Name == "SkipCount")?.GetValue(parameters) ?? 0;
+                string sorting = (string)properties.FirstOrDefault(x => x.Name == "Sorting")?.GetValue(parameters) ?? "";
 
-                        var items = await GetDataFromStoredProcedure<TModel>(storedProcName, parameters);
+                string sortingInParam = sorting;
+                var stringReplacers = new List<ReplaceStringResult>();
 
-                        st.Stop();
+                var connStr = await GetConnectionStringAsync();
+                using(var conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
 
-                        return new PagedResultDto<TModel>()
-                        {
-                            Items = items,
-                            TotalCount = items.Count
-                        };
+                    // Sử dụng phiên bản cache cho OBJECT_DEFINITION của Stored Procedure
+                    var procedureContent = await GetProcedureContentCachedAsync(conn, storedProcName);
+
+                    if (string.IsNullOrWhiteSpace(procedureContent))
+                    {
+                        throw new UserFriendlyException($"Không tìm thấy nội dung của Stored Procedure '{storedProcName}'.");
                     }
 
-                    int totalCount = 0, skipCount = 0;
-                    string sorting = "";
-
-                    var totalCountProperty = properties.Where(x => x.Name == "TotalCount").FirstOrDefault();
-
-                    totalCount = (int?)totalCountProperty?.GetValue(parameters) ?? 0;
-                    skipCount = (int?)properties.Where(x => x.Name == "SkipCount").FirstOrDefault()?.GetValue(parameters) ?? 0;
-                    sorting = (string)properties.Where(x => x.Name == "Sorting").FirstOrDefault()?.GetValue(parameters) ?? "";
-
-                    string sortingInParam = sorting;
-
-                    List<ReplaceStringResult> stringReplacers = new List<ReplaceStringResult>();
-
-                    using (var conn = new SqlConnection(ConnectionString))
+                    var pagingBlock = ExtractFromString(procedureContent, "BEGIN -- PAGING", "END -- PAGING").FirstOrDefault();
+                    if (pagingBlock == null)
                     {
-                        var procedureContent = (string)((IDictionary<string, object>)conn.Query("SELECT OBJECT_DEFINITION (OBJECT_ID(N'" + storedProcName + "')) as CONTENT", null, null, true, commandTimeout, System.Data.CommandType.Text).First())["CONTENT"];
+                        throw new UserFriendlyException($"Stored procedure '{storedProcName}' thiếu block -- PAGING.");
+                    }
+                    procedureContent = pagingBlock.Text;
 
-                        procedureContent = ExtractFromString(procedureContent, "BEGIN -- PAGING", "END -- PAGING").First().Text;
-
-                        foreach (var text in ExtractFromString(procedureContent, "-- PAGING BEGIN", "-- PAGING END"))
+                    foreach (var text in ExtractFromString(procedureContent, "-- PAGING BEGIN", "-- PAGING END"))
+                    {
+                        var stringReplacer = new ReplaceStringResult
                         {
-                            var stringReplacer = new ReplaceStringResult();
-                            stringReplacer.IndexBegin = text.IndexBegin;
-                            stringReplacer.IndexEnd = text.IndexEnd;
+                            IndexBegin = text.IndexBegin,
+                            IndexEnd = text.IndexEnd
+                        };
 
-                            var orderBy = ExtractFromString(text.Text, "ORDER BY", "\n").Where(x => x.Text.IndexOf(")") == -1).FirstOrDefault();
+                        var orderBy = ExtractFromString(text.Text, "ORDER BY", "\n").FirstOrDefault(x => x.Text.IndexOf(")") == -1);
 
-                            if (orderBy != null)
+                        if (orderBy != null && sorting.IsNullOrWhiteSpace())
+                        {
+                            sorting = orderBy.Text;
+                        }
+
+                        if (sorting.IsNullOrWhiteSpace())
+                        {
+                            sorting = "(SELECT(1))";
+                        }
+
+                        if (orderBy != null)
+                        {
+                            var beginIndex = text.Text.IndexOf("select", StringComparison.CurrentCultureIgnoreCase);
+                            var endIndex = text.Text.IndexOf("top", beginIndex, StringComparison.CurrentCultureIgnoreCase);
+
+                            int cutPos = Math.Max(0, orderBy.IndexBegin - 8);
+
+                            if (endIndex == -1 || text.Text.Substring(beginIndex + 6, endIndex - beginIndex - 6).Trim().Length != 0)
                             {
-                                if (sorting.IsNullOrWhiteSpace())
-                                {
-                                    sorting = orderBy.Text;
-                                }
-                            }
-
-                            if (sorting.IsNullOrWhiteSpace())
-                            {
-                                sorting = "(SELECT(1))";
-                            }
-
-                            if (orderBy != null)
-                            {
-
-                                var beginIndex = text.Text.IndexOf("select", StringComparison.CurrentCultureIgnoreCase);
-                                var endIndex = text.Text.IndexOf("top", beginIndex, StringComparison.CurrentCultureIgnoreCase);
-                                if (endIndex == -1 || text.Text.Substring(beginIndex + 6, endIndex - beginIndex - 6).Trim().Length != 0)
-                                {
-                                    text.Text = text.Text.Substring(0, orderBy.IndexBegin - 8) + text.Text.Substring(orderBy.IndexEnd);
-                                }
-                                else
-                                {
-                                    text.Text = text.Text.Substring(0, orderBy.IndexBegin - 8) + "ORDER BY " + sorting + text.Text.Substring(orderBy.IndexEnd);
-                                }
-                            }
-
-                            int index = text.Text.IndexOf("-- SELECT END");
-
-                            var textBetweenTop = ExtractFromString(text.Text.Substring(0, index).ToUpper(), "TOP", ")").FirstOrDefault();
-
-                            if (totalCount == 0)
-                            {
-                                if (textBetweenTop == null)
-                                {
-                                    stringReplacer.Text = "\r\nBEGIN\r\nSELECT COUNT(*) " + text.Text.Substring(index);
-                                }
-                                else
-                                {
-                                    stringReplacer.Text = "\r\nBEGIN\r\nSELECT COUNT(*) FROM(" + text.Text + ") COUNTER_TOP";
-                                }
+                                text.Text = text.Text.Substring(0, cutPos) + text.Text.Substring(orderBy.IndexEnd);
                             }
                             else
                             {
-                                stringReplacer.Text = "\r\nBEGIN" + stringReplacer.Text;
+                                text.Text = text.Text.Substring(0, cutPos) + "ORDER BY " + sorting + text.Text.Substring(orderBy.IndexEnd);
                             }
-                            //stringReplacer.Text = skipCount == 0 ? $"\r\nSELECT COUNT(*) AS [COUNTER] FROM ({text.Text}) a\r\n" : "";
-
-
-
-
-                            if (!string.IsNullOrWhiteSpace(sortingInParam))
-                            {
-                                text.Text = "SELECT A.*, ROW_NUMBER() OVER (ORDER BY " + sorting + ") AS __ROWNUM FROM (" + text.Text + " ) A";
-                            }
-                            else
-                            {
-                                text.Text = text.Text.Insert(index, ", ROW_NUMBER() OVER (ORDER BY " + sorting + ") AS __ROWNUM");
-                            }
-
-                            //text.Text.Insert(index, "\r\n, ROW_NUMBER() OVER (ORDER BY " + sorting + ") AS __ROWNUM\r\n");
-
-                            text.Text = ";WITH QUERY_DATA AS ( " + text.Text +
-                                ") SELECT * FROM QUERY_DATA WHERE __ROWNUM > " + skipCount + " AND __ROWNUM <= " + (skipCount + maxResultCount) + "\r\nEND";
-
-                            stringReplacer.Text += text.Text;
-                            stringReplacers.Add(stringReplacer);
                         }
 
+                        int index = text.Text.IndexOf("-- SELECT END");
+                        if (index == -1) continue;
 
-                        stringReplacers.Reverse();
-
-                        foreach (var item in stringReplacers)
-                        {
-                            procedureContent = procedureContent.Substring(0, item.IndexBegin) + item.Text + procedureContent.Substring(item.IndexEnd);
-                        }
-
-                        var declareParam = "DECLARE " + string.Join(",\r\n", parameterInfos.Select(x =>
-                        {
-
-                            object parameterValue = null;
-                            var property = properties.Where(p => CompareName(p.Name, x.PARAMETER_NAME)).FirstOrDefault();
-
-                            if (property != null)
-                            {
-                                parameterValue = GetParameterValue(property, parameters);
-
-                            }
-                            return GetValuePaging(x, parameterValue);
-                        }));
-
-                        procedureContent = declareParam + "\r\n" + procedureContent;
-
-                        var result = conn.QueryMultiple("-- PROCEDURE NAME: " + storedProcName + "\r\n\r\n" + procedureContent, null, null, commandTimeout);
+                        var textBetweenTop = ExtractFromString(text.Text.Substring(0, index).ToUpper(), "TOP", ")").FirstOrDefault();
 
                         if (totalCount == 0)
                         {
-                            totalCount = result.Read<int>().FirstOrDefault();
+                            if (textBetweenTop == null)
+                            {
+                                stringReplacer.Text = "\r\nBEGIN\r\nSELECT COUNT(*) " + text.Text.Substring(index);
+                            }
+                            else
+                            {
+                                stringReplacer.Text = "\r\nBEGIN\r\nSELECT COUNT(*) FROM(" + text.Text + ") COUNTER_TOP";
+                            }
+                        }
+                        else
+                        {
+                            stringReplacer.Text = "\r\nBEGIN" + stringReplacer.Text;
                         }
 
-                        return new PagedResultDto<TModel>()
+                        if (!string.IsNullOrWhiteSpace(sortingInParam))
                         {
-                            Items = result.Read<TModel>().ToList(),
-                            TotalCount = totalCount
-                        };
-                    }
-                }
+                            text.Text = "SELECT A.*, ROW_NUMBER() OVER (ORDER BY " + sorting + ") AS __ROWNUM FROM (" + text.Text + " ) A";
+                        }
+                        else
+                        {
+                            text.Text = text.Text.Insert(index, ", ROW_NUMBER() OVER (ORDER BY " + sorting + ") AS __ROWNUM");
+                        }
 
-                return null;
+                        text.Text = ";WITH QUERY_DATA AS ( " + text.Text +
+                            ") SELECT * FROM QUERY_DATA WHERE __ROWNUM > " + skipCount + " AND __ROWNUM <= " + (skipCount + maxResultCount) + "\r\nEND";
+
+                        stringReplacer.Text += text.Text;
+                        stringReplacers.Add(stringReplacer);
+                    }
+
+                    stringReplacers.Reverse();
+
+                    foreach (var item in stringReplacers)
+                    {
+                        procedureContent = procedureContent.Substring(0, item.IndexBegin) + item.Text + procedureContent.Substring(item.IndexEnd);
+                    }
+
+                    var declareParam = "DECLARE " + string.Join(",\r\n", parameterInfos.Select(x =>
+                    {
+                        object parameterValue = null;
+                        var property = properties.FirstOrDefault(p => CompareName(p.Name, x.PARAMETER_NAME));
+
+                        if (property != null)
+                        {
+                            parameterValue = GetParameterValue(property, parameters);
+                        }
+                        return GetValuePaging(x, parameterValue);
+                    }));
+
+                    procedureContent = declareParam + "\r\n" + procedureContent;
+
+                    var multiResult = await conn.QueryMultipleAsync(
+                        "-- PROCEDURE NAME: " + storedProcName + "\r\n\r\n" + procedureContent,
+                        commandTimeout: commandTimeout
+                    );
+
+                    if (totalCount == 0)
+                    {
+                        totalCount = (await multiResult.ReadAsync<int>()).FirstOrDefault();
+                    }
+
+                    var itemsResult = (await multiResult.ReadAsync<TModel>()).ToList();
+
+                    return new PagedResultDto<TModel>()
+                    {
+                        Items = itemsResult,
+                        TotalCount = totalCount
+                    };
+                }
+            }
+            catch (UserFriendlyException)
+            {
+                throw;
             }
             catch (Exception e)
             {
-                throw new UserFriendlyException(e.Message);
+                throw new UserFriendlyException(e.Message, e);
             }
         }
 
@@ -347,8 +689,8 @@ namespace ThienPhucDental.ProcedureHelpers
 
         private async Task<List<StoreParameterInfoDto>> GetParameterInfos(string storeProcName)
         {
-
-            using (var conn = new SqlConnection(ConnectionString))
+            var connStr = await GetConnectionStringAsync();
+            using (var conn = new SqlConnection(connStr))
             {
                 var rr = await conn.QueryAsync<StoreParameterInfoDto>($"select PARAMETER_NAME, PARAMETER_MODE, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH from information_schema.parameters where specific_name = @storeProcName", new
                 {
@@ -384,26 +726,57 @@ namespace ThienPhucDental.ProcedureHelpers
 
         string GetValuePaging(StoreParameterInfoDto paramInfo, object value)
         {
+            var name = paramInfo.PARAMETER_NAME;
+            var type = paramInfo.DATA_TYPE.ToLower();
 
-            switch (paramInfo.DATA_TYPE.ToLower())
+            switch (type)
             {
                 case "bit":
-                    return paramInfo.PARAMETER_NAME + " " + paramInfo.DATA_TYPE + " = " + (value != null ? ((bool)value ? "1" : "0") : "NULL");
+                    // FIX: không cast cứng (bool), hỗ trợ bool?, int, string
+                    bool? b = null;
+                    if (value is bool bv) b = bv;
+                    else if (value is bool?) b = (bool?)value;
+                    else if (value is int iv) b = iv != 0;
+                    return $"{name} {paramInfo.DATA_TYPE} = {(b.HasValue ? (b.Value ? "1" : "0") : "NULL")}";
+
                 case "int":
                 case "numeric":
                 case "decimal":
-                    return paramInfo.PARAMETER_NAME + " " + paramInfo.DATA_TYPE + " = " + (value != null ? value.ToString() : "NULL");
+                case "float":
+                case "money":
+                    // FIX: invariant culture
+                    return $"{name} {paramInfo.DATA_TYPE} = " +
+                           (value != null
+                               ? Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture)
+                               : "NULL");
+
+                case "date":
+                case "datetime":
+                case "datetime2":
+                case "smalldatetime":
+                    // FIX: hỗ trợ datetime — dùng parameter thay vì concat
+                    return value is DateTime dt
+                        ? $"{name} {paramInfo.DATA_TYPE} = '{dt:yyyy-MM-dd HH:mm:ss.fff}'"
+                        : $"{name} {paramInfo.DATA_TYPE} = NULL";
+
                 case "xml":
-                    return paramInfo.PARAMETER_NAME + " " + paramInfo.DATA_TYPE + " = " + (value != null ? "'" + value.ToString() + "'" : "NULL");
+                    // FIX: escape ' để tránh SQL Injection
+                    return $"{name} {paramInfo.DATA_TYPE} = " +
+                           (value != null ? "N'" + value.ToString().Replace("'", "''") + "'" : "NULL");
+
                 case "varchar":
                 case "varchar2":
                 case "nchar":
                 case "char":
                 case "nvarchar":
-                    return paramInfo.PARAMETER_NAME + " " + paramInfo.DATA_TYPE + "(" + (paramInfo.CHARACTER_MAXIMUM_LENGTH == -1 ? "MAX" : paramInfo.CHARACTER_MAXIMUM_LENGTH.ToString()) + ")" + " = " + (value != null ? "N'" + value.ToString().Replace("'", "''") + "'" : "NULL");
-                default:
-                    throw new Exception("Not support Exception " + paramInfo.DATA_TYPE);
+                    var len = paramInfo.CHARACTER_MAXIMUM_LENGTH == -1
+                        ? "MAX"
+                        : paramInfo.CHARACTER_MAXIMUM_LENGTH.ToString();
+                    return $"{name} {paramInfo.DATA_TYPE}({len}) = " +
+                           (value != null ? "N'" + value.ToString().Replace("'", "''") + "'" : "NULL");
 
+                default:
+                    throw new UserFriendlyException($"Chưa hỗ trợ kiểu dữ liệu: {paramInfo.DATA_TYPE}");
             }
         }
 

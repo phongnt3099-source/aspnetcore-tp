@@ -84,5 +84,47 @@ namespace ThienPhucDental.CoreModule.Consts
         public const string CM_CUSTOMER_NOTE_UPD = "CM_CUSTOMER_NOTE_Upd";
         public const string CM_CUSTOMER_NOTE_DEL = "CM_CUSTOMER_NOTE_Del";
         public const string CM_CUSTOMER_NOTE_GET = "CM_CUSTOMER_NOTE_Get";
+
+        public const string CM_SHIFT_SEARCH = "CM_SHIFT_Search";
+        public const string CM_SHIFT_BY_ID = "CM_SHIFT_ById";
+        public const string CM_SHIFT_INS = "CM_SHIFT_Ins";
+        public const string CM_SHIFT_UPD = "CM_SHIFT_Upd";
+        public const string CM_SHIFT_DEL = "CM_SHIFT_Del";
+
+        public const string CM_HOLIDAY_SEARCH = "CM_HOLIDAY_Search";
+        public const string CM_HOLIDAY_BY_ID = "CM_HOLIDAY_ById";
+        public const string CM_HOLIDAY_INS = "CM_HOLIDAY_Ins";
+        public const string CM_HOLIDAY_UPD = "CM_HOLIDAY_Upd";
+        public const string CM_HOLIDAY_DEL = "CM_HOLIDAY_Del";
+
+        public const string CM_CLINIC_NETWORK_SEARCH = "CM_CLINIC_NETWORK_Search";
+        public const string CM_CLINIC_NETWORK_INS = "CM_CLINIC_NETWORK_Ins";
+        public const string CM_CLINIC_NETWORK_UPD = "CM_CLINIC_NETWORK_Upd";
+        public const string CM_CLINIC_NETWORK_DEL = "CM_CLINIC_NETWORK_Del";
+        public const string CM_CLINIC_NETWORK_BY_ID = "CM_CLINIC_NETWORK_ById";
+
+        public const string AT_PROCESS_ATTENDANCE = "AT_PROCESS_ATTENDANCE";
+
+        public const string CM_EMPLOYEE_FACE_INS_OR_UPD = "CM_EMPLOYEE_FACE_InsOrUpd";
+        public const string CM_EMPLOYEE_FACE_INS = "CM_EMPLOYEE_Face_Ins";
+        public const string CM_EMPLOYEE_FACE_BYID = "CM_EMPLOYEE_FACE_BYID";
+
+        public const string AT_CHECK_TODAY_ATTENDANCE_STATUS = "AT_CHECK_TODAY_ATTENDANCE_STATUS";
+
+        public const string CM_EMPLOYEE_SHIFT_SEARCH = "CM_EMPLOYEE_SHIFT_Search";
+        public const string CM_EMPLOYEE_SHIFT_INS = "CM_EMPLOYEE_SHIFT_Ins";
+        public const string CM_EMPLOYEE_SHIFT_UPD = "CM_EMPLOYEE_SHIFT_Upd";
+        public const string CM_EMPLOYEE_SHIFT_DEL = "CM_EMPLOYEE_SHIFT_Del";
+        public const string CM_EMPLOYEE_SHIFT_GETALLACTIVE = "CM_EMPLOYEE_GetAllActive";
+        public const string CM_EMPLOYEE_SHIFT_INS_OR_UPD = "CM_EMPLOYEE_SHIFT_InsOrUpd";
+        public const string CM_EMPLOYEE_SHIFT_BY_EMP_AND_MONTH = "CM_EMPLOYEE_SHIFT_GetByEmpAndMonth";
+
+        public const string AT_REQUEST_GET_APPROVERS = "AT_REQUEST_GetApprovers";
+        public const string AT_REQUEST_CREATE = "AT_REQUEST_Create";
+        public const string AT_REQUEST_GET_PENDING_FOR_ME = "AT_REQUEST_GetPendingForMe";
+        public const string AT_REQUEST_GET_MY_REQUESTS = "AT_REQUEST_GetMyRequests";
+        public const string AT_REQUEST_APPROVE = "AT_REQUEST_Approve";
+        public const string AT_REQUEST_REJECT = "AT_REQUEST_Reject";
+        public const string AT_REQUEST_CANCEL = "AT_REQUEST_Cancel";
     }
 }

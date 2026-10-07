@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using ThienPhucDental.Authorization;
 using ThienPhucDental.Common.Dto;
 using ThienPhucDental.CoreModule.Consts;
 using ThienPhucDental.CoreModule.Utils;
@@ -23,6 +24,7 @@ namespace ThienPhucDental.Common
 
         }
 
+        [AbpAuthorize(AppPermissions.Pages_Common_Customer_Create)]
         public async Task<InsertResult> CM_CUSTOMER_NOTE_Ins(CM_CUSTOMER_NOTE_ENTITY input)
         {
             
@@ -31,14 +33,14 @@ namespace ThienPhucDental.Common
             return result;
         }
 
-        //[AbpAuthorize(AppPermissions.Pages_Common_AllCode_Update)]
+        [AbpAuthorize(AppPermissions.Pages_Common_Customer_Update)]
         public async Task<InsertResult> CM_CUSTOMER_NOTE_Upd(CM_CUSTOMER_NOTE_ENTITY input)
         {
             return (await _storeProcedureProvider
                 .GetDataFromStoredProcedure<InsertResult>(CommonStoreProcedureConsts.CM_CUSTOMER_NOTE_UPD, input)).FirstOrDefault();
         }
 
-        // [AbpAuthorize(AppPermissions.Pages_Common_AllCode_Delete)]
+         [AbpAuthorize(AppPermissions.Pages_Common_Customer_Delete)]
         public async Task<CommonResult> CM_CUSTOMER_NOTE_Del(string id, string currentUserId)
         {
             var result = (await _storeProcedureProvider
@@ -49,6 +51,9 @@ namespace ThienPhucDental.Common
                 })).FirstOrDefault();
             return result;
         }
+
+
+        [AbpAuthorize(AppPermissions.Pages_Common_Customer)]
         public async Task<List<CM_CUSTOMER_NOTE_ENTITY>> CM_CUSTOMER_NOTE_Get(string cus_id)
         {
             var result = await _storeProcedureProvider

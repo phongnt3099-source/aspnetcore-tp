@@ -130,16 +130,64 @@ namespace ThienPhucDental.Authorization
             allcode.CreateChildPermission(AppPermissions.Pages_Common_AllCode_Update, L("EditingAllCodes"), multiTenancySides: MultiTenancySides.Host);
             allcode.CreateChildPermission(AppPermissions.Pages_Common_AllCode_Delete, L("DeletingAllCodes"), multiTenancySides: MultiTenancySides.Host);
 
-            var medicalExamination = pages.CreateChildPermission(AppPermissions.Pages_Medical_Examination, L("MedicalExaminations"), multiTenancySides: MultiTenancySides.Tenant);
-            medicalExamination.CreateChildPermission(AppPermissions.Pages_Medical_Examination_Create, L("CreatingNewMedicalExamination"), multiTenancySides: MultiTenancySides.Tenant);
-            medicalExamination.CreateChildPermission(AppPermissions.Pages_Medical_Examination_Update, L("EditingMedicalExamination"), multiTenancySides: MultiTenancySides.Tenant);
-            medicalExamination.CreateChildPermission(AppPermissions.Pages_Medical_Examination_Delete, L("DeletingMedicalExamination"), multiTenancySides: MultiTenancySides.Tenant);
+            // 1. Quản lý Khách hàng
+            var customer = pages.CreateChildPermission(AppPermissions.Pages_Common_Customer, L("Pages_Common_Customer"));
+            customer.CreateChildPermission(AppPermissions.Pages_Common_Customer_Create, L("Create"));
+            customer.CreateChildPermission(AppPermissions.Pages_Common_Customer_ViewDetail, L("ViewDetail"));
+            customer.CreateChildPermission(AppPermissions.Pages_Common_Customer_Update, L("Edit"));
+            customer.CreateChildPermission(AppPermissions.Pages_Common_Customer_Print, L("Print"));
+            customer.CreateChildPermission(AppPermissions.Pages_Common_Customer_Delete, L("Delete"));
 
-            var financeTransaction = context.CreatePermission(AppPermissions.Pages_Finance_Transaction, L("FinanceManagement"));
-            financeTransaction.CreateChildPermission(AppPermissions.Pages_Finance_Transaction_Create, L("CreateFinanceTransaction"));
-            financeTransaction.CreateChildPermission(AppPermissions.Pages_Finance_Transaction_Print, L("PrintInvoiceReceipt"));
-            financeTransaction.CreateChildPermission(AppPermissions.Pages_Finance_Transaction_EditLast, L("EditOrDeleteLastTransaction"));
+            // 2. Quản lý Nhân viên
+            var employee = pages.CreateChildPermission(AppPermissions.Pages_Common_Employee, L("Pages_Common_Employee"));
+            employee.CreateChildPermission(AppPermissions.Pages_Common_Employee_Create, L("Create"));
+            employee.CreateChildPermission(AppPermissions.Pages_Common_Employee_Update, L("Edit"));
+            employee.CreateChildPermission(AppPermissions.Pages_Common_Employee_Delete, L("Delete"));
+
+            // 3. Quản lý Dịch vụ
+            var service = pages.CreateChildPermission(AppPermissions.Pages_Common_Service, L("Pages_Common_Service"));
+            service.CreateChildPermission(AppPermissions.Pages_Common_Service_Create, L("Create"));
+            service.CreateChildPermission(AppPermissions.Pages_Common_Service_Update, L("Edit"));
+            service.CreateChildPermission(AppPermissions.Pages_Common_Service_Delete, L("Delete"));
+
+            // 4. Quản lý Loại dịch vụ
+            var serviceType = pages.CreateChildPermission(AppPermissions.Pages_Common_ServiceType, L("Pages_Common_ServiceType"));
+            serviceType.CreateChildPermission(AppPermissions.Pages_Common_ServiceType_Create, L("Create"));
+            serviceType.CreateChildPermission(AppPermissions.Pages_Common_ServiceType_Update, L("Edit"));
+            serviceType.CreateChildPermission(AppPermissions.Pages_Common_ServiceType_Delete, L("Delete"));
+
+            // 5. Quản lý Lịch hẹn
+            var appointment = pages.CreateChildPermission(AppPermissions.Pages_Medical_Appointment, L("Pages_Medical_Appointment"));
+            appointment.CreateChildPermission(AppPermissions.Pages_Medical_Appointment_Create, L("Create"));
+            appointment.CreateChildPermission(AppPermissions.Pages_Medical_Appointment_Update, L("Edit"));
+            appointment.CreateChildPermission(AppPermissions.Pages_Medical_Appointment_Delete, L("Delete"));
+
+            // 6. Phân quyền Khám & Điều trị
+            var medicalExamination = pages.CreateChildPermission(AppPermissions.Pages_Medical_Examination, L("Pages_Medical_Examination"));
+            medicalExamination.CreateChildPermission(AppPermissions.Pages_Medical_Examination_Create, L("Create"));
+            medicalExamination.CreateChildPermission(AppPermissions.Pages_Medical_Examination_Update, L("Edit"));
+            medicalExamination.CreateChildPermission(AppPermissions.Pages_Medical_Examination_Delete, L("Delete"));
+            medicalExamination.CreateChildPermission(AppPermissions.Pages_Medical_Examination_Print, L("Print"));
+
+            // 7. Phân quyền Phiếu Thu Chi
+            var financeTransaction = pages.CreateChildPermission(AppPermissions.Pages_Finance_Transaction, L("Pages_Finance_Transaction"));
+            financeTransaction.CreateChildPermission(AppPermissions.Pages_Finance_Transaction_Create, L("Create"));
+            financeTransaction.CreateChildPermission(AppPermissions.Pages_Finance_Transaction_Update, L("Edit")); // Hoặc dùng chung L("Edit")
+            financeTransaction.CreateChildPermission(AppPermissions.Pages_Finance_Transaction_Delete, L("Delete"));
+            financeTransaction.CreateChildPermission(AppPermissions.Pages_Finance_Transaction_Print, L("Print"));
             financeTransaction.CreateChildPermission(AppPermissions.Pages_Finance_Transaction_AdminBypass, L("AdminBypassHistoryLock"));
+
+            // --- ATTENDANCE CONFIGURATION ---
+            var attendanceConfig = pages.CreateChildPermission(AppPermissions.Pages_Common_Holiday, L("AttendanceConfiguration"));
+            attendanceConfig.CreateChildPermission(AppPermissions.Pages_Common_Holiday_Create, L("Create"));
+            attendanceConfig.CreateChildPermission(AppPermissions.Pages_Common_Holiday_Update, L("Edit"));
+            attendanceConfig.CreateChildPermission(AppPermissions.Pages_Common_Holiday_Delete, L("Delete"));
+
+            // --- EMPLOYEE SHIFT CONFIGURATION ---
+            var employeeShiftConfig = pages.CreateChildPermission(AppPermissions.Pages_Common_EmployeeShift, L("EmployeeShiftConfiguration"));
+            employeeShiftConfig.CreateChildPermission(AppPermissions.Pages_Common_EmployeeShift_Create, L("Create"));
+            employeeShiftConfig.CreateChildPermission(AppPermissions.Pages_Common_EmployeeShift_Update, L("Edit"));
+            employeeShiftConfig.CreateChildPermission(AppPermissions.Pages_Common_EmployeeShift_Delete, L("Delete"));
         }
 
         private static ILocalizableString L(string name)

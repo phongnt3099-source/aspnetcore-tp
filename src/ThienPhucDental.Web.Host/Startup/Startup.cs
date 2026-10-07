@@ -48,6 +48,10 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using ThienPhucDental.Helper;
 using ThienPhucDental.Heplers;
 using Microsoft.AspNetCore.Http;
+using ThienPhucDental.Web.Startup.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
+using static ThienPhucDental.ProcedureHelpers.StoreProcedureProvider;
+using Tweetinvi.Core.Models.Properties;
 
 namespace ThienPhucDental.Web.Startup
 {
@@ -66,6 +70,9 @@ namespace ThienPhucDental.Web.Startup
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
+            //ĐĂNG KÝ DAPPER TYPE HANDLER — chạy 1 lần khi app khởi động
+            Dapper.SqlMapper.AddTypeHandler(new NullableDateTimeHandler());
+
             //MVC
             var mvcBuilder = services.AddControllersWithViews(options =>
             {
@@ -75,6 +82,9 @@ namespace ThienPhucDental.Web.Startup
 #if DEBUG
             mvcBuilder.AddRazorRuntimeCompilation();
 #endif
+
+            // Thêm dịch vụ Memory Cache cho hệ thống caching
+            services.AddMemoryCache();
 
             services.AddSignalR();
 
@@ -171,6 +181,22 @@ namespace ThienPhucDental.Web.Startup
             services.TryAddSingleton<IClientConnection, ClientConnection>();
             services.AddScoped<IDetailLoggerHelper, DetailLoggerHelper>();
 
+            // ================= RATE LIMITING CHO BIOMETRICS (NET 8) =================
+            services.AddRateLimiter(options =>
+            {
+                // Trả về mã lỗi HTTP 429 khi vượt ngưỡng
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+                // Policy cho luồng điểm danh & đăng ký khuôn mặt
+                options.AddFixedWindowLimiter("BiometricsPolicy", opt =>
+                {
+                    opt.PermitLimit = 1;                          // Cho phép tối đa 1 request
+                    opt.Window = TimeSpan.FromSeconds(3);          // Trong khung thời gian 3 giây
+                    opt.QueueLimit = 0;                           // Không xếp hàng chờ, từ chối ngay lập tức
+                });
+            });
+            // ========================================================================
+
             //Configure Abp and Dependency Injection
             return services.AddAbp<ThienPhucDentalWebHostModule>(options =>
             {
@@ -217,6 +243,7 @@ namespace ThienPhucDental.Web.Startup
             app.UseCors(DefaultCorsPolicyName); //Enable CORS!
 
             app.UseAuthentication();
+            app.UseRateLimiter();
             app.UseJwtTokenMiddleware();
 
             if (bool.Parse(_appConfiguration["OpenIddict:IsEnabled"]))
@@ -237,11 +264,11 @@ namespace ThienPhucDental.Web.Startup
 
             if (WebConsts.HangfireDashboardEnabled)
             {
-                //Hangfire dashboard &server(Enable to use Hangfire instead of default job manager)
+                // Hangfire dashboard & server (Enable to use Hangfire instead of default job manager)
                 app.UseHangfireDashboard(WebConsts.HangfireDashboardEndPoint, new DashboardOptions
                 {
-                    Authorization = new[]
-                        {new AbpHangfireAuthorizationFilter(AppPermissions.Pages_Administration_HangfireDashboard)}
+                    Authorization = new[] { new HangfireCustomAuthorizationFilter() },
+                    IgnoreAntiforgeryToken = true // Vượt qua kiểm tra CSRF / Anti-Forgery của Hangfire
                 });
             }
 
@@ -266,7 +293,8 @@ namespace ThienPhucDental.Web.Startup
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapHub<AbpCommonHub>("/signalr");
-                endpoints.MapHub<ChatHub>("/signalr-chat");
+                endpoints.MapHub<AbpCommonHub>("/signalr-common");
+                //endpoints.MapHub<ChatHub>("/signalr-chat");
 
                 endpoints.MapControllerRoute("defaultWithArea", "{area}/{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");

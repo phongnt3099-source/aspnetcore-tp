@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: test_thienphuc_db
+    user: root
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Thanhphong@3008
+    ports:
+      - "1433:1433"
+    volumes:
+      - test_mssql_data:/var/opt/mssql/data
+      - ./ThienPhucDental_DB.bak:/var/opt/mssql/backup/ThienPhucDental_DB.bak
+
+  api:
+    image: thienphucdental-api:v1
+    container_name: test_thienphuc_api
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_HTTPS_PORTS=
+      - ConnectionStrings__Default=Server=db,1433;Database=ThienPhucDentalDb;User Id=sa;Password=Thanhphong@3008;TrustServerCertificate=True;
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'      
+          memory: 1024M    
+    depends_on:
+      - db
+
+volumes:
+  test_mssql_data:

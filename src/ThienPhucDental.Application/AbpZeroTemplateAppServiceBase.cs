@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Abp.Application.Services;
+using Abp.Dependency;
 using Abp.IdentityFramework;
 using Abp.MultiTenancy;
 using Abp.Runtime.Session;
 using Abp.Threading;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using ThienPhucDental.Authorization.Users;
 using ThienPhucDental.MultiTenancy;
@@ -23,10 +25,14 @@ namespace ThienPhucDental
 
         protected IStoreProcedureProvider storeProcedureProvider;
 
+        private readonly IHttpContextAccessor httpContextAccessor;
+
 
         protected ThienPhucDentalAppServiceBase()
         {
             LocalizationSourceName = ThienPhucDentalConsts.LocalizationSourceName;
+            storeProcedureProvider = IocManager.Instance.Resolve<IStoreProcedureProvider>();
+            httpContextAccessor = IocManager.Instance.Resolve<IHttpContextAccessor>();
         }
 
         protected virtual async Task<User> GetCurrentUserAsync()
@@ -64,6 +70,16 @@ namespace ThienPhucDental
         protected virtual void CheckErrors(IdentityResult identityResult)
         {
             identityResult.CheckErrors(LocalizationManager);
+        }
+
+        protected DateTime GetCurrentDateTime()
+        {
+            return DateTime.Now;
+        }
+
+        protected string GetCurrentUserName()
+        {
+            return httpContextAccessor.HttpContext?.User?.Identity?.Name;
         }
     }
 }

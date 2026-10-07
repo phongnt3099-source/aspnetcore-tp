@@ -26,14 +26,11 @@ namespace ThienPhucDental.Common
     {
 
         //protected IStoreProcedureProvider storeProcedureProvider;
-        private readonly IStoreProcedureProvider _storeProcedureProvider; 
         private readonly EditionManager _editionManager;    
 
         public CommonLookupAppService(EditionManager editionManager, IStoreProcedureProvider storeProcedureProvider)
         {
             _editionManager = editionManager;
-            _storeProcedureProvider = storeProcedureProvider;
-            //storeProcedureProvider = IocManager.Instance.Resolve<IStoreProcedureProvider>();
 
         }
 
@@ -102,7 +99,7 @@ namespace ThienPhucDental.Common
         }
         public async Task<List<CM_ALLCODE_ENTITY>> CM_ALLCODE_DROPDOWNLIST(string cdType, string cdName)
         {
-            var result = await _storeProcedureProvider
+            var result = await storeProcedureProvider
                 .GetDataFromStoredProcedure<CM_ALLCODE_ENTITY>(CommonStoreProcedureConsts.CM_ALLCODE_DROPDOWNLIST, new
                 {
                     P_CDNAME = cdName,
@@ -115,7 +112,7 @@ namespace ThienPhucDental.Common
         //[AbpAuthorize(AppPermissions.Pages_Common_AllCode)]
         public async Task<PagedResultDto<CM_ALLCODE_ENTITY>> CM_ALLCODE_Search(CM_ALLCODE_ENTITY input)
         {
-            var result = await _storeProcedureProvider.GetPagingData<CM_ALLCODE_ENTITY>(CommonStoreProcedureConsts.CM_ALLCODE_SEARCH, input);
+            var result = await storeProcedureProvider.GetPagingData<CM_ALLCODE_ENTITY>(CommonStoreProcedureConsts.CM_ALLCODE_SEARCH, input);
             return result;
         }
 
@@ -127,12 +124,12 @@ namespace ThienPhucDental.Common
                 if (input == null)
                     throw new UserFriendlyException("Dữ liệu đầu vào không được để trống!");
 
-                if (_storeProcedureProvider == null)
+                if (storeProcedureProvider == null)
                     throw new UserFriendlyException("_storeProcedureProvider chưa được inject!");
 
                 Logger.Info($"CM_ALLCODE_Ins called - Code: {input.CDNAME}, Name: {input.CDTYPE ?? "null"}");
 
-                var resultList = await _storeProcedureProvider
+                var resultList = await storeProcedureProvider
                     .GetDataFromStoredProcedure<InsertResult>(
                         CommonStoreProcedureConsts.CM_ALLCODE_INS,
                         input);
@@ -156,14 +153,14 @@ namespace ThienPhucDental.Common
         //[AbpAuthorize(AppPermissions.Pages_Common_AllCode_Update)]
         public async Task<InsertResult> CM_ALLCODE_Upd(CM_ALLCODE_ENTITY input)
         {
-            return (await _storeProcedureProvider
+            return (await storeProcedureProvider
                 .GetDataFromStoredProcedure<InsertResult>(CommonStoreProcedureConsts.CM_ALLCODE_UPD, input)).FirstOrDefault();
         }
 
        // [AbpAuthorize(AppPermissions.Pages_Common_AllCode_Delete)]
         public async Task<CommonResult> CM_ALLCODE_Del(int id)      
         {
-            var result =(await _storeProcedureProvider
+            var result =(await storeProcedureProvider
                 .GetDataFromStoredProcedure<CommonResult>(CommonStoreProcedureConsts.CM_ALLCODE_DEL, new
                 {
                     ALL_CODE_ID = id
@@ -172,7 +169,7 @@ namespace ThienPhucDental.Common
         }
         public async Task<List<CM_ROLES_ENTITY>> CM_ROLES_DROPDOWNLIST()
         {
-            var result = await _storeProcedureProvider
+            var result = await storeProcedureProvider
                 .GetDataFromStoredProcedure<CM_ROLES_ENTITY>(CommonStoreProcedureConsts.CM_ROLES_DROPDOWNLIST,new { });
 
             return result;

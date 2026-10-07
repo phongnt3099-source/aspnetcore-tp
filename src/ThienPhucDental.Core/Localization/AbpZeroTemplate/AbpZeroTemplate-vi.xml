@@ -793,5 +793,19 @@
     <text name="PrintInvoiceReceipt">In hóa đơn / Biên lai</text>
     <text name="EditOrDeleteLastTransaction">Sửa hoặc Xóa lượt giao dịch gần nhất</text>
     <text name="AdminBypassHistoryLock">Quyền Quản trị viên: Can thiệp sửa toàn bộ lịch sử tiền</text>
+    <text name="Pages_Common_Customer">Màn hình Khách hàng</text>
+    <text name="Pages_Common_Employee">Màn hình Nhân viên</text>
+    <text name="Pages_Common_Service">Màn hình Danh mục Dịch vụ</text>
+    <text name="Pages_Common_ServiceType">Màn hình Loại dịch vụ</text>
+    <text name="Pages_Medical_Appointment">Màn hình Lịch hẹn khám</text>
+    <text name="EditLastTransaction">Sửa phiếu gần nhất</text>
+    <text name="Pages_Medical_Examination">Màn hình Khám &amp; Điều trị</text>
+    <text name="Pages_Finance_Transaction">Màn hình Phiếu Thu Chi</text>
+
+    <!-- Nút thao tác dùng chung (nếu chưa có trong Vi.xml) -->
+    <text name="Create">Thêm mới</text>
+    <text name="Edit">Sửa</text>
+    <text name="Delete">Xóa</text>
+    <text name="Print">In phiếu</text>
   </texts>
 </localizationDictionary>
